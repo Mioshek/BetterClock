@@ -67,7 +67,7 @@ fun BottomNavigationBar(
                     selectedIconColor = MaterialTheme.colorScheme.tertiary,
                     selectedTextColor = MaterialTheme.colorScheme.onSurface,
                     indicatorColor = MaterialTheme.colorScheme.surface,
-                    unselectedIconColor = MaterialTheme.colorScheme.tertiary.copy(0.4f),
+                    unselectedIconColor = MaterialTheme.colorScheme.tertiary.copy(0.2f),
                     unselectedTextColor = MaterialTheme.colorScheme.onSurface,
                     disabledIconColor = MaterialTheme.colorScheme.tertiary.copy(0.1f),
                     disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(0.1f)
