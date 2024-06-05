@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "The Clock"
 include(":app")
- 
+include(":MioshekAssets")

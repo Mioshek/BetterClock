@@ -1,19 +1,15 @@
 package com.mioshek.theclock.views
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Arrangement
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,10 +19,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mioshek.theclock.R
-import com.mioshek.theclock.ui.theme.bodyFontFamily
+import com.mioshek.theclock.ui.theme.TheClockTheme
 import com.mioshek.theclock.ui.theme.displayFontFamily
 
 enum class StopwatchState{
@@ -34,6 +32,7 @@ enum class StopwatchState{
     NOTSTARTED,
     PAUSED,
 }
+
 @Composable
 fun StopwatchView(modifier: Modifier = Modifier) {
     var buttonState by remember { mutableStateOf(StopwatchState.NOTSTARTED) }
@@ -52,8 +51,8 @@ fun StopwatchView(modifier: Modifier = Modifier) {
         ){
             Text(
                 text = "00:00:00",
-                fontSize = 50.sp,
-                fontFamily = displayFontFamily,
+                fontSize = 70.sp,
+                fontFamily = FontFamily.Serif,
             )
         }
 
@@ -109,5 +108,12 @@ fun StopwatchView(modifier: Modifier = Modifier) {
             }
         }
     }
+}
 
+@Preview(showSystemUi = true, showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun StopwatchPreview(){
+    TheClockTheme {
+        StopwatchView()
+    }
 }
