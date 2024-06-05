@@ -60,7 +60,6 @@ class PickerState {
 @Composable
 fun SliderWheelNumberPicker(
     wheelValues: Array<Array<String>>,
-    state: PickerState,
     startIndex: Int,
     modifier: Modifier = Modifier,
     visibleItemsCount: Int = 3,
@@ -123,6 +122,7 @@ fun SliderWheelNumberPicker(
                 }
             }
         }
+
     }
 }
 

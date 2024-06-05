@@ -25,17 +25,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mioshek.theclock.R
 import com.mioshek.theclock.ui.theme.TheClockTheme
-import com.mioshek.theclock.ui.theme.displayFontFamily
 
-enum class StopwatchState{
+enum class TimingState{
     RUNNING,
-    NOTSTARTED,
+    OFF,
     PAUSED,
 }
 
 @Composable
 fun StopwatchView(modifier: Modifier = Modifier) {
-    var buttonState by remember { mutableStateOf(StopwatchState.NOTSTARTED) }
+    var stopwatchState by remember { mutableStateOf(TimingState.OFF) }
 
     Column(
         modifier = modifier
@@ -62,11 +61,11 @@ fun StopwatchView(modifier: Modifier = Modifier) {
                 .padding(25.dp),
             verticalAlignment = Alignment.Bottom
             ) {
-            when(buttonState){
-                StopwatchState.NOTSTARTED -> {
+            when(stopwatchState){
+                TimingState.OFF -> {
                     Button(
                         onClick = {
-                            buttonState = StopwatchState.RUNNING
+                            stopwatchState = TimingState.RUNNING
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         ) {
@@ -74,7 +73,7 @@ fun StopwatchView(modifier: Modifier = Modifier) {
                     }
                 }
 
-                StopwatchState.RUNNING -> {
+                TimingState.RUNNING -> {
                     Button(
                         onClick = { /*TODO START */ },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
@@ -83,23 +82,23 @@ fun StopwatchView(modifier: Modifier = Modifier) {
                     }
 
                     Button(
-                        onClick = { buttonState = StopwatchState.PAUSED },
+                        onClick = { stopwatchState = TimingState.PAUSED },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         ) {
                         Icon(painter = painterResource(id = R.drawable.pause), contentDescription = "Pause")
                     }
                 }
 
-                StopwatchState.PAUSED -> {
+                TimingState.PAUSED -> {
                     Button(
-                        onClick = { buttonState = StopwatchState.NOTSTARTED },
+                        onClick = { stopwatchState = TimingState.OFF },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         ) {
                         Icon(painter = painterResource(id = R.drawable.delete), contentDescription = "Clear")
                     }
 
                     Button(
-                        onClick = { buttonState = StopwatchState.RUNNING },
+                        onClick = { stopwatchState = TimingState.RUNNING },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         ) {
                         Icon(painter = painterResource(id = R.drawable.play), contentDescription = "Play")
