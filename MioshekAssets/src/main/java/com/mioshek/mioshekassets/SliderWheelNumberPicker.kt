@@ -105,7 +105,7 @@ fun SliderWheelNumberPicker(
                     modifier = Modifier
                         .height(itemHeightDp * visibleItemsCount)
                         .fadingEdge(fadingEdgeGradient)
-                        .padding(start = padding.times(2), end = padding.times(2))
+                        .padding(start = padding, end = padding)
                 ){
                     items(listScrollCount){index ->
                         Text(
