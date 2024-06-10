@@ -13,10 +13,8 @@ object Storage {
     }
 
     fun <V> take(key: String): V {
-        if (objects[key] != null){
-            return objects.remove(key) as V
-        }
-        else throw NullPointerException("Key and/or Value cannot be null")
+        val value = objects.remove(key) ?: throw NullPointerException("Key and/or Value cannot be null")
+        return value as V
     }
 
     fun size(): Int {
