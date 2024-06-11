@@ -1,15 +1,12 @@
 package com.mioshek.theclock.views
 
 import android.content.res.Configuration
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -31,17 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mioshek.theclock.R
-import com.mioshek.theclock.controllers.StopwatchTime
 import com.mioshek.theclock.controllers.StopwatchUiState
 import com.mioshek.theclock.controllers.StopwatchViewModel
+import com.mioshek.theclock.data.ClockTime
 import com.mioshek.theclock.data.Storage
+import com.mioshek.theclock.data.TimingState
 import com.mioshek.theclock.ui.theme.TheClockTheme
-
-enum class TimingState{
-    RUNNING,
-    OFF,
-    PAUSED,
-}
 
 @Composable
 fun StopwatchView(
@@ -221,7 +213,7 @@ fun StagesView(
     }
 }
 
-fun getStringTime(time:StopwatchTime): String {
+fun getStringTime(time:ClockTime): String {
     return if (time.hours == 0L)
         "${time.minutes}:${time.seconds}.${time.milliseconds}"
     else "${time.hours}:${time.minutes}:${time.seconds}.${time.milliseconds}"

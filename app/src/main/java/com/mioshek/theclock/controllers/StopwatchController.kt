@@ -1,8 +1,10 @@
 package com.mioshek.theclock.controllers
 
 import androidx.lifecycle.ViewModel
+import com.mioshek.theclock.data.ClockTime
 import com.mioshek.theclock.data.Storage
-import com.mioshek.theclock.views.TimingState
+import com.mioshek.theclock.data.TimingState
+import com.mioshek.theclock.data.getTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -12,18 +14,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class StopwatchTime(
-    val milliseconds: Long = 0,
-    val seconds: Long = 0,
-    val minutes: Long = 0,
-    val hours: Long = 0,
-)
-
 
 data class StopwatchUiState(
-    val time: StopwatchTime = StopwatchTime(),
+    val time: ClockTime = ClockTime(),
     val stopwatchState: TimingState = TimingState.OFF,
-    val stages: MutableList<StopwatchTime> = mutableListOf()
+    val stages: MutableList<ClockTime> = mutableListOf()
 )
 
 
@@ -47,7 +42,7 @@ class StopwatchViewModel: ViewModel(){
             while (_stopwatchUiState.value.time.hours < 100 && _stopwatchUiState.value.stopwatchState == TimingState.RUNNING){
                 val currentTime = System.currentTimeMillis()
                 val elapsedTime = currentTime - startTime + pausedTime
-                val time = getStopwatchTime(elapsedTime)
+                val time = getTime(elapsedTime)
                 _stopwatchUiState.update {currentState ->
                     currentState.copy(
                         time = time
@@ -57,7 +52,7 @@ class StopwatchViewModel: ViewModel(){
             }
             val endTime = Storage.take<Long>("EndTime")
             val finalElapsedTime = endTime - startTime + pausedTime
-            val time = getStopwatchTime(finalElapsedTime)
+            val time = getTime(finalElapsedTime)
             _stopwatchUiState.update {currentState ->
                 currentState.copy(
                     time = time
@@ -85,18 +80,10 @@ class StopwatchViewModel: ViewModel(){
     fun resetStopwatch(){
         _stopwatchUiState.update { currentState ->
             currentState.copy(
-                time = StopwatchTime(),
+                time = ClockTime(),
                 stopwatchState = TimingState.OFF,
                 stages = mutableListOf()
             )
         }
-    }
-
-    private fun getStopwatchTime(elapsedTime: Long): StopwatchTime {
-        val hours = (elapsedTime / (1000 * 60 * 60)) % 24
-        val minutes = (elapsedTime / (1000 * 60)) % 60
-        val seconds = (elapsedTime / 1000) % 60
-        val milliseconds = elapsedTime % 1000
-        return StopwatchTime(milliseconds, seconds, minutes, hours)
     }
 }
