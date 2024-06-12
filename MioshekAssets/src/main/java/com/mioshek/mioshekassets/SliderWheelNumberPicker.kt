@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -70,6 +71,7 @@ fun SliderWheelNumberPicker(
     padding: Dp = 10.dp,
     fontSize: TextUnit = 60.sp,
     showHandIcon: Boolean = false,
+    alignment:  Alignment.Vertical = Alignment.CenterVertically
 ){
     val listScrollCount = Int.MAX_VALUE
     val listScrollMiddle = listScrollCount / 2
@@ -79,20 +81,22 @@ fun SliderWheelNumberPicker(
     val fadingEdgeGradient = remember {
         Brush.verticalGradient(
             0f to Color.Transparent,
+            0.3f to textColor.copy(0.2f),
             0.5f to textColor,
+            0.7f to textColor.copy(0.2f),
             1f to Color.Transparent
         )
     }
 
     Column(
         modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center
     ) {
         Row(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(padding),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = alignment
         ) {
             wheelValues.forEachIndexed { index, column ->
                 val listStartIndex = listScrollMiddle - listScrollMiddle % column.size - visibleItemsMiddle + startIndex

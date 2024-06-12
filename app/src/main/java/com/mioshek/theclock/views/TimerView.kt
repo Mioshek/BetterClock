@@ -1,13 +1,15 @@
 package com.mioshek.theclock.views
 
-import android.widget.ProgressBar
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,17 +17,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.mioshek.mioshekassets.SliderWheelNumberPicker
 import com.mioshek.theclock.R
 import com.mioshek.theclock.controllers.TimerListViewModel
 import com.mioshek.theclock.controllers.TimerUiState
@@ -45,25 +50,107 @@ fun TimerView(
     modifier: Modifier = Modifier,
     timerViewModel: TimerListViewModel = viewModel()
 ) {
+    var pickingTime by remember { mutableStateOf(false) }
     val timers = timerViewModel.timers
     val seconds = (0..59).map { i -> if (i < 10) "0$i" else "$i"  }.toTypedArray()
     val minutes = seconds
     val hours = (0..99).map { i -> if (i < 10) "0$i" else "$i"  }.toTypedArray()
 
-    Column {
-//        SliderWheelNumberPicker(
-//            arrayOf(hours, minutes, seconds),
-//            0,
-//            onValueChange = {
-//
-//            }
-//        )
+    Box(modifier = modifier.fillMaxSize()){
+        Box(modifier = modifier.fillMaxSize()){
+            Column(
+                modifier = modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LazyColumn(
+                    userScrollEnabled = !pickingTime,
+                    modifier = modifier
+                        .fillMaxHeight(0.9f)
+                        .fillMaxWidth()
+                        .padding(10.dp)
+                ) {
+                    itemsIndexed(timers){index, timer ->
+                        SingleTimerView(timer, timerViewModel)
+                    }
+                }
 
-        LazyColumn(
-            modifier = modifier.fillMaxSize().padding(10.dp)
-        ) {
-            itemsIndexed(timers){index, timer ->
-                SingleTimerView(timer, timerViewModel)
+                if(!pickingTime){
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "NewTimer",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .padding(5.dp)
+                            .clickable(enabled = !pickingTime) {
+                                pickingTime = true
+                            }
+                    )
+                }
+            }
+        }
+
+        if (pickingTime){
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(0.6f))
+            ){
+                Column(
+                    modifier = modifier
+                        .fillMaxSize()
+                        .padding(10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+
+                    SliderWheelNumberPicker(
+                        arrayOf(hours, minutes, seconds),
+                        0,
+                        alignment = Alignment.Bottom,
+                        onValueChange = {
+
+                        },
+                        modifier = modifier.weight(3f),
+                    )
+
+                    Row(
+                        modifier = modifier
+                            .fillMaxSize()
+                            .padding(10.dp)
+                            .weight(1f),
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            modifier = modifier
+                                .border(
+                                    width = 1.dp,
+                                    MaterialTheme.colorScheme.onBackground.copy(0.2f),
+                                    RoundedCornerShape(10.dp)
+                                )
+                                .padding(12.dp)
+                                .clickable {
+                                    pickingTime = false
+                                }
+                        )
+                        
+                        Spacer(modifier = modifier.padding(10.dp))
+                        
+                        Text(
+                            text = "Save",
+                            modifier = modifier
+                                .border(
+                                    width = 1.dp,
+                                    MaterialTheme.colorScheme.onBackground.copy(0.2f),
+                                    RoundedCornerShape(10.dp)
+                                )
+                                .padding(12.dp)
+                                .clickable {
+
+                                }
+                        )
+                    }
+                }
             }
         }
     }
@@ -88,100 +175,19 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
             when(timer.timerState){
 
                 TimingState.OFF -> {
-                    Icon(
-                        painter = painterResource(id = R.drawable.play),
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "Play",
-                        modifier = Modifier
-                            .size(50.dp)
-                            .padding(5.dp)
-                            .clickable {
-                                timerViewModel.updateTimer(
-                                    TimerUiState(
-                                        timer.index,
-                                        timer.time,
-                                        TimingState.RUNNING,
-                                        timer.percentRemain
-                                    )
-                                )
-                            }
-                    )
+                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING)
                 }
 
                 TimingState.RUNNING -> {
-                    Icon(
-                        painter = painterResource(id = R.drawable.stop),
-                        contentDescription = "NewLoop",
-                        modifier = Modifier
-                            .size(50.dp)
-                            .padding(5.dp)
-                            .clickable {
-                                timerViewModel.updateTimer(
-                                    TimerUiState(
-                                        timer.index,
-                                        timer.time,
-                                        TimingState.OFF,
-                                        timer.percentRemain
-                                    )
-                                )
-                            }
-                    )
+                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF)
 
-                    Icon(
-                        painter = painterResource(id = R.drawable.pause),
-                        contentDescription = "Pause",
-                        modifier = Modifier
-                            .size(50.dp)
-                            .padding(5.dp)
-                            .clickable {
-                                timerViewModel.updateTimer(
-                                    TimerUiState(
-                                        timer.index,
-                                        timer.time,
-                                        TimingState.PAUSED,
-                                        timer.percentRemain
-                                    )
-                                )
-                            }
-                    )
+                    TimerIcon(R.drawable.pause, "Pause", timerViewModel, timer, TimingState.PAUSED)
                 }
 
                 TimingState.PAUSED -> {
-                    Icon(
-                        painter = painterResource(id = R.drawable.stop),
-                        contentDescription = "NewLoop",
-                        modifier = Modifier
-                            .size(50.dp)
-                            .padding(5.dp)
-                            .clickable {
-                                timerViewModel.updateTimer(
-                                    TimerUiState(
-                                        timer.index,
-                                        timer.time,
-                                        TimingState.OFF,
-                                        timer.percentRemain
-                                    )
-                                )
-                            }
-                    )
+                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF)
 
-                    Icon(
-                        painter = painterResource(id = R.drawable.play),
-                        contentDescription = "Pause",
-                        modifier = Modifier
-                            .size(50.dp)
-                            .padding(5.dp)
-                            .clickable {
-                                timerViewModel.updateTimer(
-                                    TimerUiState(
-                                        timer.index,
-                                        timer.time,
-                                        TimingState.RUNNING,
-                                        timer.percentRemain
-                                    )
-                                )
-                            }
-                    )
+                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING)
                 }
             }
 
@@ -190,23 +196,7 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.End
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.delete),
-                    contentDescription = "NewLoop",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .padding(5.dp)
-                        .clickable {
-                            timerViewModel.updateTimer(
-                                TimerUiState(
-                                    timer.index,
-                                    timer.time,
-                                    TimingState.OFF,
-                                    timer.percentRemain
-                                )
-                            )
-                        }
-                )
+                TimerIcon(R.drawable.delete, "NewLoop", timerViewModel, timer, TimingState.OFF)
             }
         }
 
@@ -217,12 +207,32 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
         ) {
             Divider(
                 modifier = modifier
-                    .fillMaxWidth((timer.percentRemain - 25) / 100f),
+                    .fillMaxWidth((timer.percentRemaining - 25) / 100f),
                 color = MaterialTheme.colorScheme.secondary, thickness = 3.dp
             )
         }
-
     }
+}
+
+@Composable
+fun TimerIcon(icon: Int, description: String, timerViewModel: TimerListViewModel, timer: TimerUiState, timingState: TimingState){
+    Icon(
+        painter = painterResource(icon),
+        contentDescription = description,
+        modifier = Modifier
+            .size(40.dp)
+            .padding(5.dp)
+            .clickable {
+                timerViewModel.updateTimer(
+                    TimerUiState(
+                        timer.index,
+                        timer.time,
+                        timingState,
+                        timer.percentRemaining
+                    )
+                )
+            }
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)

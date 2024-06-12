@@ -1,8 +1,6 @@
 package com.mioshek.theclock.controllers
 
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mioshek.theclock.data.ClockTime
@@ -11,10 +9,6 @@ import com.mioshek.theclock.data.getTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.mioshek.theclock.controllers.TimerUiState as TimerUiState
 
@@ -22,7 +16,7 @@ data class TimerUiState(
     val index: Int,
     val time: ClockTime = ClockTime(),
     val timerState: TimingState = TimingState.OFF,
-    val percentRemain: Int = 100
+    val percentRemaining: Int = 100
 )
 
 
@@ -41,11 +35,11 @@ class TimerListViewModel: ViewModel() {
                 val remainingTime = future - currentTime
 
                 val time = getTime(remainingTime)
-                updateTimer(TimerUiState(timer.index, time, timer.timerState, timer.percentRemain))
+                updateTimer(TimerUiState(timer.index, time, timer.timerState, timer.percentRemaining))
                 delay(cycleTimeMs) // 30FPS
             }
         }
-        updateTimer(TimerUiState(timer.index, timer.time, TimingState.OFF, timer.percentRemain))
+        updateTimer(TimerUiState(timer.index, timer.time, TimingState.OFF, timer.percentRemaining))
         // TIMER FINISHED IDFK reset it to 0, send notifications?, blast ears
     }
 
