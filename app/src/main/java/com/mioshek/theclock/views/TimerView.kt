@@ -1,5 +1,6 @@
 package com.mioshek.theclock.views
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,6 +44,9 @@ import com.mioshek.theclock.R
 import com.mioshek.theclock.controllers.TimerListViewModel
 import com.mioshek.theclock.controllers.TimerUiState
 import com.mioshek.theclock.data.TimingState
+import com.mioshek.theclock.data.getStringTime
+import kotlinx.coroutines.delay
+import kotlin.reflect.KFunction1
 
 
 @Composable
@@ -171,23 +175,23 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
                 .fillMaxWidth()
                 .padding(start = 20.dp, 10.dp)
         ) {
-            Text(text = "00:00:00", fontSize = 30.sp)
+            Text(text = getStringTime(timer.time, 3), fontSize = 30.sp)
             when(timer.timerState){
 
                 TimingState.OFF -> {
-                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING)
+                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING, timerViewModel::runTimer)
                 }
 
                 TimingState.RUNNING -> {
-                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF)
+                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF, timerViewModel::pass)
 
-                    TimerIcon(R.drawable.pause, "Pause", timerViewModel, timer, TimingState.PAUSED)
+                    TimerIcon(R.drawable.pause, "Pause", timerViewModel, timer, TimingState.PAUSED, timerViewModel::pass)
                 }
 
                 TimingState.PAUSED -> {
-                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF)
+                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF, timerViewModel::pass)
 
-                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING)
+                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING, timerViewModel::pass)
                 }
             }
 
@@ -196,7 +200,7 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.End
             ) {
-                TimerIcon(R.drawable.delete, "NewLoop", timerViewModel, timer, TimingState.OFF)
+                TimerIcon(R.drawable.delete, "NewLoop", timerViewModel, timer, TimingState.OFF, timerViewModel::pass)
             }
         }
 
@@ -215,7 +219,14 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
 }
 
 @Composable
-fun TimerIcon(icon: Int, description: String, timerViewModel: TimerListViewModel, timer: TimerUiState, timingState: TimingState){
+fun TimerIcon(
+    icon: Int,
+    description: String,
+    timerViewModel: TimerListViewModel,
+    timer: TimerUiState,
+    timingState: TimingState,
+    onClick: (Int) -> Unit
+){
     Icon(
         painter = painterResource(icon),
         contentDescription = description,
@@ -231,6 +242,7 @@ fun TimerIcon(icon: Int, description: String, timerViewModel: TimerListViewModel
                         timer.percentRemaining
                     )
                 )
+                onClick(timer.index)
             }
     )
 }

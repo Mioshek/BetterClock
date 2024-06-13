@@ -30,9 +30,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mioshek.theclock.R
 import com.mioshek.theclock.controllers.StopwatchUiState
 import com.mioshek.theclock.controllers.StopwatchViewModel
-import com.mioshek.theclock.data.ClockTime
 import com.mioshek.theclock.data.Storage
 import com.mioshek.theclock.data.TimingState
+import com.mioshek.theclock.data.getStringTime
 import com.mioshek.theclock.ui.theme.TheClockTheme
 
 @Composable
@@ -55,12 +55,7 @@ fun StopwatchView(
             contentAlignment = Alignment.BottomCenter
         ){
             Text(
-                text = "%02d:%02d:%02d.%03d".format(
-                    stopwatchUiState.time.hours,
-                    stopwatchUiState.time.minutes,
-                    stopwatchUiState.time.seconds,
-                    stopwatchUiState.time.milliseconds
-                ),
+                text = getStringTime(time = stopwatchUiState.time, 4),
                 fontSize = 50.sp,
                 fontFamily = FontFamily.Serif,
             )
@@ -204,19 +199,13 @@ fun StagesView(
                     Text(text = "Stage Time", modifier = modifier
                         .weight(2f)
                         .align(Alignment.CenterVertically))
-                    Text(text = getStringTime(stage), modifier = modifier
+                    Text(text = getStringTime(stage, 4), modifier = modifier
                         .weight(2f)
                         .align(Alignment.CenterVertically))
                 }
             }
         }
     }
-}
-
-fun getStringTime(time:ClockTime): String {
-    return if (time.hours == 0L)
-        "${time.minutes}:${time.seconds}.${time.milliseconds}"
-    else "${time.hours}:${time.minutes}:${time.seconds}.${time.milliseconds}"
 }
 
 @Preview(showSystemUi = true, showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)

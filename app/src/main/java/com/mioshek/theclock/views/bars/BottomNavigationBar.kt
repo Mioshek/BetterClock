@@ -16,10 +16,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.mioshek.theclock.R
 
-sealed class BottomNavigationItem(var route: String, var icon: Int) {
-    data object AlarmList : BottomNavigationItem("alarm-list", R.drawable.alarm)
-    data object Stopwatch : BottomNavigationItem("stopwatch", R.drawable.stopwatch)
-    data object Timer: BottomNavigationItem( "timer", R.drawable.hourglass)
+enum class BottomNavigationItem(var route: String, var icon: Int, val index: Int) {
+    AlarmList("alarm-list", R.drawable.alarm, 1),
+    Stopwatch("stopwatch", R.drawable.stopwatch, 2),
+    Timer("timer", R.drawable.hourglass, 3)
 }
 
 @Composable

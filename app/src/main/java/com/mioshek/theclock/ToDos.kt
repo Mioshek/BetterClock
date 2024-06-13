@@ -6,3 +6,7 @@ package com.mioshek.theclock
 // Presets for timers
 // Compact timer design, can set names, colors, maybe transparent overlay
 // Ability to hide seconds on stopwatch and not draw them
+// Sing values in timer picker
+// Fix animations in navigation slide left / slide right
+// Settings
+// Section (Alarms, Timers etc.)

@@ -1,5 +1,6 @@
 package com.mioshek.theclock.controllers
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,11 +25,13 @@ class TimerListViewModel: ViewModel() {
     private val _timers = mutableStateListOf<TimerUiState>(TimerUiState(0), TimerUiState(1))
     val timers: List<TimerUiState> = _timers
 
-    fun runTimer(timer: TimerUiState) {
+    fun runTimer(timerIndex: Int) {
         // assuming the initial timer state is set from the UI
         // we calculate the future - the millis timer will finish
+        val timer = _timers[timerIndex]
         val future = calculateFutureMillis(timer)
-        val cycleTimeMs = 33L
+        val cycleTimeMs = 500L
+
         CoroutineScope(Dispatchers.Default).launch {
             while (System.currentTimeMillis() < future - cycleTimeMs && timer.timerState == TimingState.RUNNING) {
                 val currentTime = System.currentTimeMillis()
@@ -40,7 +43,6 @@ class TimerListViewModel: ViewModel() {
             }
         }
         updateTimer(TimerUiState(timer.index, timer.time, TimingState.OFF, timer.percentRemaining))
-        // TIMER FINISHED IDFK reset it to 0, send notifications?, blast ears
     }
 
     fun updateTimer(timer: TimerUiState){
@@ -55,6 +57,10 @@ class TimerListViewModel: ViewModel() {
 
     private fun calculateFutureMillis(timer: TimerUiState): Long {
         val time = timer.time
-        return time.hours * 60 * 60 * 1000 + time.minutes * 60 * 1000 + time.seconds * 1000
+        return time.hours * 60 * 60 * 1000 + time.minutes * 60 * 1000 + time.seconds * 1000 + System.currentTimeMillis()
+    }
+
+    fun pass(timerIndex: Int){
+
     }
 }
