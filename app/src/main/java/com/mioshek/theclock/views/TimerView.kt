@@ -40,11 +40,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mioshek.mioshekassets.SliderWheelNumberPicker
 import com.mioshek.theclock.R
+import com.mioshek.theclock.assets.StringFormatters
+import com.mioshek.theclock.assets.StringFormatters.Companion.getStringTime
 import com.mioshek.theclock.controllers.TimerListViewModel
 import com.mioshek.theclock.controllers.TimerUiState
 import com.mioshek.theclock.data.TimingState
-import com.mioshek.theclock.data.getStringTime
-
 
 @Composable
 fun TimerView(
@@ -208,9 +208,8 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
             }
         }
 
-        Column(
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.Start,
+        Box(
+            contentAlignment = Alignment.BottomStart,
             modifier = modifier.padding(10.dp)
         ) {
             Box(
@@ -219,6 +218,12 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
                     .size(2.dp)
                     .background(progressBarGradient),
             )
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.BottomEnd
+            ){
+                Text(text = StringFormatters.formatPercentage(timer.remainingProgress) + "%")
+            }
         }
     }
 }
@@ -241,15 +246,21 @@ fun TimerIcon(
                 timerViewModel.updateTimer(
                     TimerUiState(
                         timer.id,
-                        timer.updatableTime,
                         timer.initialTime,
+                        timer.updatableTime,
                         timingState,
                         timer.remainingProgress
                     )
                 )
-                when(timingState){
-                    TimingState.OFF -> {timerViewModel.updateTimer(TimerUiState(id = timer.id))}
-                    TimingState.RUNNING ->  {timerViewModel.runTimer(timer.id)}
+                when (timingState) {
+                    TimingState.OFF -> {
+                        timerViewModel.updateTimer(TimerUiState(id = timer.id))
+                    }
+
+                    TimingState.RUNNING -> {
+                        timerViewModel.runTimer(timer.id)
+                    }
+
                     TimingState.PAUSED -> {}
                 }
             }

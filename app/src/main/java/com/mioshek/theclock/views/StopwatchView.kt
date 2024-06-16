@@ -28,11 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mioshek.theclock.R
+import com.mioshek.theclock.assets.StringFormatters.Companion.getStringTime
 import com.mioshek.theclock.controllers.StopwatchUiState
 import com.mioshek.theclock.controllers.StopwatchViewModel
 import com.mioshek.theclock.data.Storage
 import com.mioshek.theclock.data.TimingState
-import com.mioshek.theclock.data.getStringTime
 import com.mioshek.theclock.ui.theme.TheClockTheme
 
 @Composable

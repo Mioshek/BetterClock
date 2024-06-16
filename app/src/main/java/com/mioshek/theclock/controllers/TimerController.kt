@@ -14,8 +14,8 @@ import com.mioshek.theclock.controllers.TimerUiState as TimerUiState
 
 data class TimerUiState(
     val id: Int,
-    val updatableTime: ClockTime = ClockTime(),
     val initialTime: ClockTime = ClockTime(),
+    val updatableTime: ClockTime = initialTime.copy(),
     val timerState: TimingState = TimingState.OFF,
     val remainingProgress: Float = 1f
 )
@@ -42,10 +42,13 @@ class TimerListViewModel: ViewModel() {
                 val remainingTime = future - currentTime
                 time = getTime(remainingTime)
                 progressBarStatus = remainingTime.toFloat() / timerTime.toFloat()
-                updateTimer(TimerUiState(timer.id, time, timer.initialTime, timer.timerState, progressBarStatus))
-                delay(cycleTimeMs) // 30FPS
+                updateTimer(TimerUiState(timer.id, timer.initialTime, time, timer.timerState, progressBarStatus))
+                delay(cycleTimeMs) // 60FPS
             }
-            updateTimer(TimerUiState(timer.id, time, timer.initialTime, TimingState.PAUSED, progressBarStatus))
+            if(timer.timerState == TimingState.RUNNING){
+                updateTimer(TimerUiState(id = timer.id, initialTime = timer.initialTime))
+                // Notification
+            }
         }
     }
 
