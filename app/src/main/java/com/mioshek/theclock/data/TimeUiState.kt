@@ -1,6 +1,5 @@
 package com.mioshek.theclock.data
 
-import android.util.Range
 
 enum class TimingState{
     RUNNING,
@@ -11,8 +10,8 @@ enum class TimingState{
 
 data class ClockTime(
     val milliseconds: Long = 0,
-    val seconds: Long = 50,
-    val minutes: Long = 59,
+    val seconds: Long = 10,
+    val minutes: Long = 0,
     val hours: Long = 0,
 )
 
@@ -24,30 +23,43 @@ fun getTime(elapsedTime: Long): ClockTime {
     return ClockTime(milliseconds, seconds, minutes, hours)
 }
 
+private val digits = intArrayOf(2, 2, 2, 3)
+private val separators = charArrayOf(' ', ':', ':', '.')
+
 /**
- * @param [timePrecision] represents what [time]: [String] will look like e.g 4 displays HH:MM:SS.mmm, 3; HH:MM:SS etc.
+ * @param clock time in format like in [ClockTime]
+ * @param start index of returned time.
+ * @param end index of returned time.
+ *
+ * [start] = 0, [end] = 4 => HH:MM:SS.mmm
+ *
+ * [start] = 0, [end] = 3 => HH:MM:SS
+ *
+ * [start] = 1, [end] = 4 => MM:SS.mmm etc.
  *
  * If [ClockTime.hours] == 0 then function does not display hours.
  */
-fun getStringTime(time:ClockTime, timePrecision: Int): String {
-    val hours = ensureFormatTime(time.hours,2)
-    val minutes = ensureFormatTime(time.minutes,2)
-    val seconds = ensureFormatTime(time.seconds,2)
-    val milliseconds = ensureFormatTime(time.milliseconds,3)
-    val timeArray = arrayOf(hours, minutes, seconds, milliseconds)
-    val stringTime = StringBuilder()
-
-    for (i in 0..<timePrecision){
-        if (i == 0 && timeArray[i] == "00"){
-            continue
-        }
-        stringTime.append(timeArray[i])
-        val separator = if (i == 2 && i != timePrecision - 1) "." else if (i != timePrecision - 1) ":" else ""
-        stringTime.append(separator)
+fun getStringTime(clock: ClockTime, start: Int, end: Int): String {
+    val numbers = intArrayOf(clock.hours.toInt(), clock.minutes.toInt(), clock.seconds.toInt(), clock.milliseconds.toInt())
+    val time = StringBuilder()
+    var i: Int = if (numbers[0] > 0) start else start + 1
+    padValue(time, numbers[i], digits[i])
+    i++
+    while (i < end) {
+        time.append(separators[i])
+        padValue(time, numbers[i], digits[i])
+        i++
     }
-    return  stringTime.toString()
+    return time.toString()
 }
 
-private fun ensureFormatTime(timeValue: Long, digits: Int): String {
-    return "%0${digits}d".format(timeValue)
+fun padValue(str: StringBuilder, value: Int, digits: Int) {
+    var digits = digits
+    val strValue = value.toString()
+    digits -= strValue.length
+    while (digits > 0) {
+        str.append('0')
+        digits--
+    }
+    str.append(strValue)
 }

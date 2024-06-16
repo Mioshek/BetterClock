@@ -1,6 +1,5 @@
 package com.mioshek.theclock.views
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,8 +44,6 @@ import com.mioshek.theclock.controllers.TimerListViewModel
 import com.mioshek.theclock.controllers.TimerUiState
 import com.mioshek.theclock.data.TimingState
 import com.mioshek.theclock.data.getStringTime
-import kotlinx.coroutines.delay
-import kotlin.reflect.KFunction1
 
 
 @Composable
@@ -129,7 +126,7 @@ fun TimerView(
                             modifier = modifier
                                 .border(
                                     width = 1.dp,
-                                    MaterialTheme.colorScheme.onBackground.copy(0.2f),
+                                    MaterialTheme.colorScheme.onSurface.copy(0.2f),
                                     RoundedCornerShape(10.dp)
                                 )
                                 .padding(12.dp)
@@ -145,7 +142,7 @@ fun TimerView(
                             modifier = modifier
                                 .border(
                                     width = 1.dp,
-                                    MaterialTheme.colorScheme.onBackground.copy(0.2f),
+                                    MaterialTheme.colorScheme.onSurface.copy(0.2f),
                                     RoundedCornerShape(10.dp)
                                 )
                                 .padding(12.dp)
@@ -162,9 +159,16 @@ fun TimerView(
 
 @Composable
 fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modifier: Modifier = Modifier){
+    val progressBarGradient = Brush.horizontalGradient(
+        colorStops = arrayOf(
+            0.0f to Color.Red.copy(0.5f),
+            0.5f to Color.Yellow.copy(0.5f),
+            1.0f to Color.Green.copy(0.5f)
+        )
+    )
     Card(
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(0.2f)),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(0.3f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -175,23 +179,23 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
                 .fillMaxWidth()
                 .padding(start = 20.dp, 10.dp)
         ) {
-            Text(text = getStringTime(timer.time, 3), fontSize = 30.sp)
+            Text(text = getStringTime(timer.updatableTime, 0,3), fontSize = 30.sp)
             when(timer.timerState){
 
                 TimingState.OFF -> {
-                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING, timerViewModel::runTimer)
+                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING)
                 }
 
                 TimingState.RUNNING -> {
-                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF, timerViewModel::pass)
+                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF)
 
-                    TimerIcon(R.drawable.pause, "Pause", timerViewModel, timer, TimingState.PAUSED, timerViewModel::pass)
+                    TimerIcon(R.drawable.pause, "Pause", timerViewModel, timer, TimingState.PAUSED)
                 }
 
                 TimingState.PAUSED -> {
-                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF, timerViewModel::pass)
+                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF)
 
-                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING, timerViewModel::pass)
+                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING)
                 }
             }
 
@@ -200,7 +204,7 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.End
             ) {
-                TimerIcon(R.drawable.delete, "NewLoop", timerViewModel, timer, TimingState.OFF, timerViewModel::pass)
+                TimerIcon(R.drawable.delete, "NewLoop", timerViewModel, timer, TimingState.OFF)
             }
         }
 
@@ -209,10 +213,11 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
             horizontalAlignment = Alignment.Start,
             modifier = modifier.padding(10.dp)
         ) {
-            Divider(
+            Box(
                 modifier = modifier
-                    .fillMaxWidth((timer.percentRemaining - 25) / 100f),
-                color = MaterialTheme.colorScheme.secondary, thickness = 3.dp
+                    .fillMaxWidth(timer.remainingProgress)
+                    .size(2.dp)
+                    .background(progressBarGradient),
             )
         }
     }
@@ -225,7 +230,6 @@ fun TimerIcon(
     timerViewModel: TimerListViewModel,
     timer: TimerUiState,
     timingState: TimingState,
-    onClick: (Int) -> Unit
 ){
     Icon(
         painter = painterResource(icon),
@@ -236,13 +240,18 @@ fun TimerIcon(
             .clickable {
                 timerViewModel.updateTimer(
                     TimerUiState(
-                        timer.index,
-                        timer.time,
+                        timer.id,
+                        timer.updatableTime,
+                        timer.initialTime,
                         timingState,
-                        timer.percentRemaining
+                        timer.remainingProgress
                     )
                 )
-                onClick(timer.index)
+                when(timingState){
+                    TimingState.OFF -> {timerViewModel.updateTimer(TimerUiState(id = timer.id))}
+                    TimingState.RUNNING ->  {timerViewModel.runTimer(timer.id)}
+                    TimingState.PAUSED -> {}
+                }
             }
     )
 }

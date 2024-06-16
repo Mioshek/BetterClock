@@ -55,7 +55,7 @@ fun StopwatchView(
             contentAlignment = Alignment.BottomCenter
         ){
             Text(
-                text = getStringTime(time = stopwatchUiState.time, 4),
+                text = getStringTime(clock = stopwatchUiState.time, 0,4),
                 fontSize = 50.sp,
                 fontFamily = FontFamily.Serif,
             )
@@ -199,7 +199,7 @@ fun StagesView(
                     Text(text = "Stage Time", modifier = modifier
                         .weight(2f)
                         .align(Alignment.CenterVertically))
-                    Text(text = getStringTime(stage, 4), modifier = modifier
+                    Text(text = getStringTime(stage, 0,4), modifier = modifier
                         .weight(2f)
                         .align(Alignment.CenterVertically))
                 }

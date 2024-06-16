@@ -10,3 +10,5 @@ package com.mioshek.theclock
 // Fix animations in navigation slide left / slide right
 // Settings
 // Section (Alarms, Timers etc.)
+// Option for entire progress bar be the same color
+// Get current refresh rate for phone https://developer.android.com/media/optimize/performance/frame-rate

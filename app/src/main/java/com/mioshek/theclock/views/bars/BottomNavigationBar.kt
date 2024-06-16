@@ -8,13 +8,16 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.mioshek.theclock.R
+import com.mioshek.theclock.data.Storage
 
 enum class BottomNavigationItem(var route: String, var icon: Int, val index: Int) {
     AlarmList("alarm-list", R.drawable.alarm, 1),
@@ -34,9 +37,10 @@ fun BottomNavigationBar(
     )
 
     NavigationBar(
-        modifier = modifier,
+        modifier = modifier.clip(BottomNavCurve()),
+//        containerColor = MaterialTheme.colorScheme.background,
         containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         tonalElevation = 5.dp
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -64,15 +68,16 @@ fun BottomNavigationBar(
                 alwaysShowLabel = true,
                 selected = currentRoute == item.route,
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.tertiary,
-                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                    indicatorColor = MaterialTheme.colorScheme.surface,
-                    unselectedIconColor = MaterialTheme.colorScheme.tertiary.copy(0.2f),
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledIconColor = MaterialTheme.colorScheme.tertiary.copy(0.1f),
-                    disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(0.1f)
+                    selectedIconColor = MaterialTheme.colorScheme.secondary,
+                    selectedTextColor = MaterialTheme.colorScheme.onBackground,
+                    indicatorColor = MaterialTheme.colorScheme.background,
+                    unselectedIconColor = MaterialTheme.colorScheme.onBackground.copy(0.2f),
+                    unselectedTextColor = MaterialTheme.colorScheme.onBackground,
+                    disabledIconColor = MaterialTheme.colorScheme.onBackground.copy(0.1f),
+                    disabledTextColor = MaterialTheme.colorScheme.onBackground.copy(0.1f)
                 ),
                 onClick = {
+                    Storage.put("BottomNavBarItemIndex", item.index)
                     navController.navigate(item.route) {
                         // Pop up to the start destination of the graph to
                         // avoid building up a large stack of destinations

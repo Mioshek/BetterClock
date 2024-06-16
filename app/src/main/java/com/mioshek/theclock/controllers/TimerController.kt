@@ -1,6 +1,5 @@
 package com.mioshek.theclock.controllers
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,10 +13,11 @@ import kotlinx.coroutines.launch
 import com.mioshek.theclock.controllers.TimerUiState as TimerUiState
 
 data class TimerUiState(
-    val index: Int,
-    val time: ClockTime = ClockTime(),
+    val id: Int,
+    val updatableTime: ClockTime = ClockTime(),
+    val initialTime: ClockTime = ClockTime(),
     val timerState: TimingState = TimingState.OFF,
-    val percentRemaining: Int = 100
+    val remainingProgress: Float = 1f
 )
 
 
@@ -28,25 +28,29 @@ class TimerListViewModel: ViewModel() {
     fun runTimer(timerIndex: Int) {
         // assuming the initial timer state is set from the UI
         // we calculate the future - the millis timer will finish
-        val timer = _timers[timerIndex]
-        val future = calculateFutureMillis(timer)
-        val cycleTimeMs = 500L
+        var timer = _timers[timerIndex]
+        var progressBarStatus = timer.remainingProgress
+        val timerTime = timeToMillis(timer.initialTime)
+        val future = timeToMillis(timer.updatableTime) + System.currentTimeMillis()
+        var time = timer.updatableTime
+        val cycleTimeMs = 17L
 
         CoroutineScope(Dispatchers.Default).launch {
             while (System.currentTimeMillis() < future - cycleTimeMs && timer.timerState == TimingState.RUNNING) {
+                timer = _timers[timerIndex]
                 val currentTime = System.currentTimeMillis()
                 val remainingTime = future - currentTime
-
-                val time = getTime(remainingTime)
-                updateTimer(TimerUiState(timer.index, time, timer.timerState, timer.percentRemaining))
+                time = getTime(remainingTime)
+                progressBarStatus = remainingTime.toFloat() / timerTime.toFloat()
+                updateTimer(TimerUiState(timer.id, time, timer.initialTime, timer.timerState, progressBarStatus))
                 delay(cycleTimeMs) // 30FPS
             }
+            updateTimer(TimerUiState(timer.id, time, timer.initialTime, TimingState.PAUSED, progressBarStatus))
         }
-        updateTimer(TimerUiState(timer.index, timer.time, TimingState.OFF, timer.percentRemaining))
     }
 
     fun updateTimer(timer: TimerUiState){
-        _timers[timer.index] = timer
+        _timers[timer.id] = timer
     }
 
     fun updateAllTimers(){
@@ -55,12 +59,7 @@ class TimerListViewModel: ViewModel() {
         }
     }
 
-    private fun calculateFutureMillis(timer: TimerUiState): Long {
-        val time = timer.time
-        return time.hours * 60 * 60 * 1000 + time.minutes * 60 * 1000 + time.seconds * 1000 + System.currentTimeMillis()
-    }
-
-    fun pass(timerIndex: Int){
-
+    private fun timeToMillis(time: ClockTime): Long {
+        return time.hours * 60 * 60 * 1000 + time.minutes * 60 * 1000 + time.seconds * 1000
     }
 }
