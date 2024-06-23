@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -36,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,6 +51,7 @@ import com.mioshek.theclock.controllers.TimerUiState
 import com.mioshek.theclock.data.ClockTime
 import com.mioshek.theclock.data.TimingState
 import com.mioshek.theclock.db.AppViewModelProvider
+import kotlin.reflect.KFunction3
 
 @Composable
 fun TimerView(
@@ -58,6 +61,11 @@ fun TimerView(
     var pickingTime by remember { mutableStateOf(false) }
     var pickedTime by remember { mutableStateOf(TimerUiState()) }
     var showInvalidArgumentAllert by remember { mutableStateOf(false) }
+    var pickedPreset by remember{ mutableStateOf(arrayOf(0,0,0))}
+
+    fun changePreset(hours: Int, minutes: Int, seconds: Int){
+        pickedPreset = arrayOf(hours, minutes, seconds)
+    }
 
     val timers = timerViewModel.timers
     val seconds = (0..59).map { i -> if (i < 10) "0$i" else "$i"  }.toTypedArray()
@@ -112,19 +120,24 @@ fun TimerView(
 
                     SliderWheelNumberPicker(
                         arrayOf(hours, minutes, seconds),
-                        0,
+                        pickedPreset,
                         alignment = Alignment.Bottom,
                         onValueChange = {
                             pickedTime = TimerUiState(initialTime = ClockTime(seconds = it[2], minutes = it[1], hours = it[0]))
                         },
-                        modifier = modifier.weight(3f),
+                        modifier = modifier.fillMaxHeight(0.7f)
+                    )
+
+                    ExampleTimerPresetsList(
+                        ::changePreset,
+                        modifier = modifier.fillMaxHeight(0.5f).fillMaxWidth()
                     )
 
                     Row(
                         modifier = modifier
-                            .fillMaxSize()
-                            .padding(10.dp)
-                            .weight(1f),
+                            .fillMaxWidth()
+                            .fillMaxHeight()
+                            .padding(10.dp),
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.Center
                     ) {
@@ -276,6 +289,7 @@ fun TimerIcon(
                 timerViewModel.updateTimer(
                     TimerUiState(
                         timer.id,
+                        timer.name,
                         timer.initialTime,
                         timer.updatableTime,
                         timingState,
@@ -298,6 +312,50 @@ fun TimerIcon(
                 }
             }
     )
+}
+
+@Composable
+fun ExampleTimerPresetsList(onClick: KFunction3<Int, Int, Int, Unit>, modifier: Modifier = Modifier){
+    val presets = mutableListOf(
+        TimerUiState(name = "Make a Cup Of Tea", initialTime = ClockTime(minutes = 5)),
+        TimerUiState(name = "Quick Shower", initialTime = ClockTime(minutes = 10)),
+        TimerUiState(name = "Meditating", initialTime = ClockTime(minutes = 15)),
+        TimerUiState(name = "Go For a Walk", initialTime = ClockTime(minutes = 20)),
+        TimerUiState(name = "Power Nap", initialTime = ClockTime(minutes = 30)),
+        TimerUiState(name = "Gym Session", initialTime = ClockTime(hours = 1))
+    )
+
+    LazyRow(
+        modifier = modifier.fillMaxSize(),
+        verticalAlignment = Alignment.Bottom
+    ){
+        itemsIndexed(presets){ _, item ->
+            TimerPresetCard(onClick,item)
+        }
+    }
+}
+
+@Composable
+fun TimerPresetCard(onClick: KFunction3<Int, Int, Int, Unit>, preset: TimerUiState, modifier: Modifier = Modifier){
+    Card(
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(0.3f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(10.dp)
+            .clickable {
+                onClick(preset.initialTime.hours.toInt(), preset.initialTime.minutes.toInt(), preset.initialTime.seconds.toInt())
+            }
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = modifier.padding(8.dp)
+        ) {
+            Text(text = preset.name, fontSize = 12.sp, fontFamily = FontFamily.Default)
+            Text(text = getStringTime(preset.initialTime, 0, 3), fontSize = 30.sp)
+        }
+    }
 }
 
 @Composable

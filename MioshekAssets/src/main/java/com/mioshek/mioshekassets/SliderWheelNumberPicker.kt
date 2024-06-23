@@ -4,6 +4,7 @@ import android.util.Log
 import android.util.Range
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
@@ -69,7 +70,7 @@ class PickerState {
 @Composable
 fun SliderWheelNumberPicker(
     wheelValues: Array<Array<String>>,
-    startIndex: Int,
+    startIndex: Array<Int>,
     modifier: Modifier = Modifier,
     visibleItemsCount: Int = 3,
     dividerColor: Color = Color.White,
@@ -101,19 +102,22 @@ fun SliderWheelNumberPicker(
 
     Column(
         modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Bottom
     ) {
         Row(
             modifier = modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(padding),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = alignment
         ) {
             wheelValues.forEachIndexed { tableIndex, column ->
-                val listStartIndex = listScrollMiddle - listScrollMiddle % column.size - visibleItemsMiddle + startIndex
+                val listStartIndex = listScrollMiddle - listScrollMiddle % column.size - visibleItemsMiddle + startIndex[tableIndex]
                 val listState = rememberLazyListState(initialFirstVisibleItemIndex = listStartIndex)
                 val coroutineScope = rememberCoroutineScope()
                 val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
+                coroutineScope.launch { listState.scrollToItem(listStartIndex) }
+
 
                 LazyColumn(
                     state = listState,

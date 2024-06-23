@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 
 data class TimerUiState(
     val id: Int = 0,
+    val name: String = "",
     val initialTime: ClockTime = ClockTime(),
     val updatableTime: ClockTime = initialTime.copy(),
     val timerState: TimingState = TimingState.OFF,
@@ -42,9 +43,7 @@ class TimerListViewModel(
     private val _sortBy = mutableStateOf(SortType.ID_ASC)
     private val _timers = mutableStateListOf<TimerUiState>()
     val timers: List<TimerUiState> = _timers
-    init {
-        importTimers()
-    }
+    init {importTimers()}
 
 
     fun createTimer(timer: TimerUiState){
@@ -63,7 +62,7 @@ class TimerListViewModel(
         }
     }
 
-    fun importTimers(){
+    private fun importTimers(){
         viewModelScope.launch {
             val loadedTimers = when(_sortBy.value) {
                 SortType.ID_DESC -> {repository.getAllByIdDesc().first()}
@@ -107,7 +106,7 @@ class TimerListViewModel(
                 val remainingTime = future - currentTime
                 time = getFullClockTime(remainingTime)
                 progressBarStatus = remainingTime.toFloat() / timerTime.toFloat()
-                updateTimer(TimerUiState(timer.id, timer.initialTime, time, timer.timerState, progressBarStatus))
+                updateTimer(TimerUiState(timer.id, timer.name, timer.initialTime, time, timer.timerState, progressBarStatus))
                 delay(cycleTimeMs) // 60FPS
                 while (timer.timerState == TimingState.PAUSED){
                     timer = _timers[timerIndex]
@@ -128,7 +127,7 @@ class TimerListViewModel(
 
     fun resumeTimer(timerIndex: Int){
         val timer = _timers[timerIndex]
-        val newTimer = TimerUiState(timer.id, timer.initialTime, timer.updatableTime, TimingState.RUNNING, timer.remainingProgress)
+        val newTimer = TimerUiState(timer.id, timer.name, timer.initialTime, timer.updatableTime, TimingState.RUNNING, timer.remainingProgress)
         updateTimer(newTimer)
     }
 
