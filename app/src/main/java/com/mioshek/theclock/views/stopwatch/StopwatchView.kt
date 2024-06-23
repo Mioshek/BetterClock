@@ -1,6 +1,7 @@
-package com.mioshek.theclock.views
+package com.mioshek.theclock.views.stopwatch
 
 import android.content.res.Configuration
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,10 +9,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -78,7 +78,6 @@ fun StopwatchView(
             stopwatchViewModel,
             modifier
                 .weight(0.8f)
-                .fillMaxSize()
         )
     }
 }
@@ -94,57 +93,61 @@ fun StopwatchButtons(stopwatchViewModel: StopwatchViewModel, modifier: Modifier 
     ) {
         when(stopwatchUiState.stopwatchState){
             TimingState.OFF -> {
-                Button(
-                    onClick = {
-                        stopwatchViewModel.changeStopwatchState(TimingState.RUNNING)
-                        stopwatchViewModel.runStopwatch()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                ) {
-                    Icon(painter = painterResource(id = R.drawable.play), contentDescription = "Play")
-                }
+                Icon(
+                    painter = painterResource(id = R.drawable.play),
+                    contentDescription = "Play",
+                    modifier = modifier
+                        .size(50.dp)
+                        .clickable {
+                            stopwatchViewModel.changeStopwatchState(TimingState.RUNNING)
+                            stopwatchViewModel.runStopwatch()
+                        },
+                )
             }
 
             TimingState.RUNNING -> {
-                Button(
-                    onClick = { stopwatchViewModel.addStage()},
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                ) {
-                    Icon(painter = painterResource(id = R.drawable.flag), contentDescription = "NewLoop")
-                }
+                Icon(
+                    painter = painterResource(id = R.drawable.flag), contentDescription = "NewLoop",
+                    modifier = modifier
+                        .size(50.dp)
+                        .clickable { stopwatchViewModel.addStage() },
+                )
 
-                Button(
-                    onClick = {
-                        val timestamp = System.currentTimeMillis()
-                        Storage.put("EndTime", timestamp)
-                        stopwatchViewModel.changeStopwatchState(TimingState.PAUSED)
+                Icon(
+                    painter = painterResource(id = R.drawable.pause),
+                    contentDescription = "Pause",
+                    modifier = modifier
+                        .size(50.dp)
+                        .clickable {
+                            val timestamp = System.currentTimeMillis()
+                            Storage.put("EndTime", timestamp)
+                            stopwatchViewModel.changeStopwatchState(TimingState.PAUSED)
                         },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                ) {
-                    Icon(painter = painterResource(id = R.drawable.pause), contentDescription = "Pause")
-                }
+                )
             }
 
             TimingState.PAUSED -> {
-                Button(
-                    onClick = {
-                        stopwatchViewModel.changeStopwatchState(TimingState.OFF)
-                        stopwatchViewModel.resetStopwatch()
+                Icon(
+                    painter = painterResource(id = R.drawable.delete),
+                    contentDescription = "Clear",
+                    modifier = modifier
+                        .size(50.dp)
+                        .clickable {
+                            stopwatchViewModel.changeStopwatchState(TimingState.OFF)
+                            stopwatchViewModel.resetStopwatch()
                         },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                ) {
-                    Icon(painter = painterResource(id = R.drawable.delete), contentDescription = "Clear")
-                }
+                )
 
-                Button(
-                    onClick = {
-                        stopwatchViewModel.changeStopwatchState(TimingState.RUNNING)
-                        stopwatchViewModel.resumeStopwatch()
+                Icon(
+                    painter = painterResource(id = R.drawable.play),
+                    contentDescription = "Play",
+                    modifier = modifier
+                        .size(50.dp)
+                        .clickable {
+                            stopwatchViewModel.changeStopwatchState(TimingState.RUNNING)
+                            stopwatchViewModel.resumeStopwatch()
                         },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                ) {
-                    Icon(painter = painterResource(id = R.drawable.play), contentDescription = "Play")
-                }
+                )
             }
         }
     }

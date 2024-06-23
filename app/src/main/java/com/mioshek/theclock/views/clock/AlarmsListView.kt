@@ -1,4 +1,4 @@
-package com.mioshek.theclock.views
+package com.mioshek.theclock.views.clock
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

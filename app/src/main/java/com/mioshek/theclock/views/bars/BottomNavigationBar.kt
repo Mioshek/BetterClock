@@ -8,7 +8,6 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
@@ -19,10 +18,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.mioshek.theclock.R
 import com.mioshek.theclock.data.Storage
 
-enum class BottomNavigationItem(var route: String, var icon: Int, val index: Int) {
-    AlarmList("alarm-list", R.drawable.alarm, 1),
-    Stopwatch("stopwatch", R.drawable.stopwatch, 2),
-    Timer("timer", R.drawable.hourglass, 3)
+enum class BottomNavigationItem(var route: String, var icon: Int, val index: Int, val title: Int) {
+    AlarmList("alarm-list", R.drawable.alarm, 1, R.string.alarms),
+    Stopwatch("stopwatch", R.drawable.stopwatch, 2, R.string.stopwatch),
+    Timer("timer", R.drawable.hourglass, 3, R.string.timer)
 }
 
 @Composable
@@ -47,31 +46,22 @@ fun BottomNavigationBar(
         val currentRoute = navBackStackEntry?.destination?.route
 
         items.forEach{ item ->
-            var title = ""
-            when(item.route){
-                "alarm-list" -> {title = stringResource(R.string.alarms)
-                }
-                "stopwatch" -> {title = stringResource(R.string.stopwatch)
-                }
-                "timer" -> {title = stringResource(R.string.timer)
-                }
-            }
 
             NavigationBarItem(
                 icon = {
                     Icon(
                         painterResource(id = item.icon),
-                        contentDescription = title,
+                        contentDescription = stringResource(id = item.title),
                     )
                 },
-                label = { Text(text = title) },
+                label = { Text(text = stringResource(id = item.title)) },
                 alwaysShowLabel = true,
                 selected = currentRoute == item.route,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.secondary,
                     selectedTextColor = MaterialTheme.colorScheme.onBackground,
                     indicatorColor = MaterialTheme.colorScheme.background,
-                    unselectedIconColor = MaterialTheme.colorScheme.onBackground.copy(0.2f),
+                    unselectedIconColor = MaterialTheme.colorScheme.onBackground.copy(0.8f),
                     unselectedTextColor = MaterialTheme.colorScheme.onBackground,
                     disabledIconColor = MaterialTheme.colorScheme.onBackground.copy(0.1f),
                     disabledTextColor = MaterialTheme.colorScheme.onBackground.copy(0.1f)

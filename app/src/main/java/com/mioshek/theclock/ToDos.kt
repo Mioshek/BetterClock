@@ -13,3 +13,4 @@ package com.mioshek.theclock
 // Option for entire progress bar be the same color
 // Get current refresh rate for phone https://developer.android.com/media/optimize/performance/frame-rate
 // Bigger Timer
+// Option to hide progress bar with percentage if the timer state is off

@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import com.mioshek.theclock.data.Storage
 
-class BottomNavCurve() : Shape {
+class BottomNavCurve : Shape {
 
     override fun createOutline(
         size: Size,
@@ -43,33 +43,33 @@ class BottomNavCurve() : Shape {
                 )
             )
 
-            val selectedIndex = try {
-                Storage.take<Int>("BottomNavBarItemIndex")
-            }
-            catch (e: Exception){
-                2
-            }
-            val offset = selectedIndex - 1
-            val biggerCircleRadius = size.width / 12
-            val smallerCircleRadius = size.width / 24
-            val additional = (size.width / 3) * offset + (smallerCircleRadius /5) * offset
-            addArc(
-                oval = Rect(
-                    offset = Offset(size.width/5 - biggerCircleRadius + additional, - biggerCircleRadius/2),
-                    size = Size(biggerCircleRadius, biggerCircleRadius)
-                ),
-                startAngleDegrees = 0f,
-                sweepAngleDegrees = 360f
-            )
-
-            addArc(
-                oval = Rect(
-                    offset = Offset(size.width/2 - biggerCircleRadius, - biggerCircleRadius/2),
-                    size = Size(smallerCircleRadius, smallerCircleRadius)
-                ),
-                startAngleDegrees = 0f,
-                sweepAngleDegrees = 360f
-            )
+//            val selectedIndex = try {
+//                Storage.take<Int>("BottomNavBarItemIndex")
+//            }
+//            catch (e: Exception){
+//                2
+//            }
+//            val offset = selectedIndex - 1
+//            val biggerCircleRadius = size.width / 12
+//            val smallerCircleRadius = size.width / 24
+//            val additional = (size.width / 3) * offset + (smallerCircleRadius /5) * offset
+//            addArc(
+//                oval = Rect(
+//                    offset = Offset(size.width/5 - biggerCircleRadius + additional, - biggerCircleRadius/2),
+//                    size = Size(biggerCircleRadius, biggerCircleRadius)
+//                ),
+//                startAngleDegrees = 0f,
+//                sweepAngleDegrees = 360f
+//            )
+//
+//            addArc(
+//                oval = Rect(
+//                    offset = Offset(size.width/2 - biggerCircleRadius, - biggerCircleRadius/2),
+//                    size = Size(smallerCircleRadius, smallerCircleRadius)
+//                ),
+//                startAngleDegrees = 0f,
+//                sweepAngleDegrees = 360f
+//            )
 
             close()
         }

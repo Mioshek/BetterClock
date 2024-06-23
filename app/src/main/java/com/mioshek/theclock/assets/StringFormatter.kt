@@ -47,6 +47,17 @@ class StringFormatters {
             str.append(strValue)
         }
 
+        /**
+         * Formats Float [factor] to String Value.
+         *
+         * Examples:
+         * 1.0f -> 100%
+         *
+         * 0.8347673f -> 83%
+         *
+         * 0.03642f -> 3.6%
+         * @return String value of [factor]
+         * */
         fun formatPercentage(factor: Float): String {
             return if (factor >= 0.1f) {
                 ((factor * 100.0).toInt()).toString()

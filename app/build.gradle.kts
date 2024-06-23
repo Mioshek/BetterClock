@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-//    id("com.google.devtools.ksp")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -56,8 +56,9 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation(project(":MioshekAssets"))
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-//    ksp("androidx.room:room-compiler:2.5.0")
+    ksp("androidx.room:room-compiler:2.5.0")
     annotationProcessor("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
 
     //Default
     implementation("androidx.core:core-ktx:1.13.1")

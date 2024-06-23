@@ -1,29 +1,21 @@
 package com.mioshek.theclock.views
 
 import android.annotation.SuppressLint
-import android.util.Log
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.mioshek.theclock.views.stopwatch.StopwatchView
 import com.mioshek.theclock.views.bars.BottomNavigationItem
+import com.mioshek.theclock.views.clock.AlarmsListView
+import com.mioshek.theclock.views.timer.TimerView
 
 class ClockNavigation {
     companion object{
