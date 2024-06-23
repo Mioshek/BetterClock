@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.mioshek.theclock.data.ClockTime
 import com.mioshek.theclock.data.Storage
 import com.mioshek.theclock.data.TimingState
-import com.mioshek.theclock.data.getTime
+import com.mioshek.theclock.data.getFullClockTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -42,7 +42,7 @@ class StopwatchViewModel: ViewModel(){
             while (_stopwatchUiState.value.time.hours < 100 && _stopwatchUiState.value.stopwatchState == TimingState.RUNNING){
                 val currentTime = System.currentTimeMillis()
                 val elapsedTime = currentTime - startTime + pausedTime
-                val time = getTime(elapsedTime)
+                val time = getFullClockTime(elapsedTime)
                 _stopwatchUiState.update {currentState ->
                     currentState.copy(
                         time = time
@@ -52,7 +52,7 @@ class StopwatchViewModel: ViewModel(){
             }
             val endTime = Storage.take<Long>("EndTime")
             val finalElapsedTime = endTime - startTime + pausedTime
-            val time = getTime(finalElapsedTime)
+            val time = getFullClockTime(finalElapsedTime)
             _stopwatchUiState.update {currentState ->
                 currentState.copy(
                     time = time
