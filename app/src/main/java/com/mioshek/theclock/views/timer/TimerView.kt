@@ -28,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,10 +57,9 @@ fun TimerView(
 ) {
     var pickingTime by remember { mutableStateOf(false) }
     var pickedTime by remember { mutableStateOf(TimerUiState()) }
+    var showInvalidArgumentAllert by remember { mutableStateOf(false) }
+
     val timers = timerViewModel.timers
-    var showAlert by remember {
-        mutableStateOf(false)
-    }
     val seconds = (0..59).map { i -> if (i < 10) "0$i" else "$i"  }.toTypedArray()
     val minutes = seconds
     val hours = (0..99).map { i -> if (i < 10) "0$i" else "$i"  }.toTypedArray()
@@ -157,7 +155,7 @@ fun TimerView(
                                 .padding(12.dp)
                                 .clickable {
                                     if (pickedTime.initialTime == ClockTime()) {
-                                        showAlert = true
+                                        showInvalidArgumentAllert = true
                                     } else {
                                         timerViewModel.createTimer(pickedTime)
                                         pickingTime = false
@@ -169,28 +167,14 @@ fun TimerView(
             }
         }
 
-        if(showAlert){
-            AlertDialog(
-                onDismissRequest = { showAlert = false },
-                title = { Text(text = "Dialog Title") },
-                text = { Text("Time Picked Cannot Be Zero") },
-                confirmButton = {
-                    Button(onClick = { showAlert = false }) {
-                        Text("OK")
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = { showAlert = false }) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
+        if (showInvalidArgumentAllert) ZeroPickedDialog(onDismiss = {showInvalidArgumentAllert = false})
     }
 }
 
 @Composable
 fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modifier: Modifier = Modifier){
+    var showConfirmAlert by remember { mutableStateOf(false) }
+
     val progressBarGradient = Brush.horizontalGradient(
         colorStops = arrayOf(
             0.0f to Color.Red.copy(0.5f),
@@ -241,7 +225,9 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
                     Icon(
                         painter = painterResource(id = R.drawable.delete),
                         contentDescription = "DeleteTimer",
-                        modifier = modifier.clickable {  }
+                        modifier = modifier.clickable {
+                            showConfirmAlert = true
+                        }
                     )
                 }
             }
@@ -267,6 +253,7 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
                 Text(text = StringFormatters.formatPercentage(timer.remainingProgress) + "%")
             }
         }
+        if (showConfirmAlert) ConfirmAlert(onDismiss = {showConfirmAlert = false}, onConfirm = {timerViewModel.deleteTimer(timer)})
     }
 }
 
@@ -310,6 +297,44 @@ fun TimerIcon(
                     TimingState.PAUSED -> {}
                 }
             }
+    )
+}
+
+@Composable
+fun ZeroPickedDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Invalid Value Of Picked Argument!") },
+        text = { Text("Time Picked Cannot Be Zero!") },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("OK")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun ConfirmAlert(onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Delete") },
+        text = { Text("Are you sure you want to delete timer?") },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("OK")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
     )
 }
 

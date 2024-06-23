@@ -21,19 +21,19 @@ interface TimerDao{
     @Upsert
     suspend fun upsert(timer: Timer)
 
-    @Query("DELETE FROM TIMER WHERE id = :id")
+    @Query("DELETE FROM Timer WHERE id = :id")
     suspend fun delete(id: Int)
 
-    @Query("SELECT * FROM TIMER ORDER BY id DESC ")
+    @Query("SELECT * FROM Timer ORDER BY id DESC ")
     fun getAllByIdDesc(): Flow<List<Timer>>
 
-    @Query("SELECT * FROM TIMER ORDER BY id ASC ")
+    @Query("SELECT * FROM Timer ORDER BY id ASC ")
     fun getAllByIdAsc(): Flow<List<Timer>>
 
-    @Query("SELECT * FROM TIMER ORDER BY time DESC ")
+    @Query("SELECT * FROM Timer ORDER BY time DESC ")
     fun getAllByTimeDesc(): Flow<List<Timer>>
 
-    @Query("SELECT * FROM TIMER ORDER BY time ASC ")
+    @Query("SELECT * FROM Timer ORDER BY time ASC ")
     fun getAllByTimeAsc(): Flow<List<Timer>>
 
 }

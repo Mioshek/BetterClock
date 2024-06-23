@@ -1,6 +1,11 @@
 package com.mioshek.theclock.controllers
 
+import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mioshek.theclock.data.ClockTime
@@ -12,6 +17,7 @@ import com.mioshek.theclock.db.TimerRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class TimerUiState(
@@ -19,15 +25,27 @@ data class TimerUiState(
     val initialTime: ClockTime = ClockTime(),
     val updatableTime: ClockTime = initialTime.copy(),
     val timerState: TimingState = TimingState.OFF,
-    val remainingProgress: Float = 1f
+    val remainingProgress: Float = 1f,
 )
+
+enum class SortType{
+    ID_DESC,
+    ID_ASC,
+    TIME_DESC,
+    TIME_ASC
+}
 
 
 class TimerListViewModel(
     private val repository: TimerRepository
 ): ViewModel() {
+    private val _sortBy = mutableStateOf(SortType.ID_ASC)
     private val _timers = mutableStateListOf<TimerUiState>()
     val timers: List<TimerUiState> = _timers
+    init {
+        importTimers()
+    }
+
 
     fun createTimer(timer: TimerUiState){
         val index = timers.size
@@ -47,12 +65,18 @@ class TimerListViewModel(
 
     fun importTimers(){
         viewModelScope.launch {
-            val timers = listOf<Timer>()
-            for (timer in timers){
+            val loadedTimers = when(_sortBy.value) {
+                SortType.ID_DESC -> {repository.getAllByIdDesc().first()}
+                SortType.ID_ASC -> {repository.getAllByIdDesc().first()}
+                SortType.TIME_DESC -> {repository.getAllByIdDesc().first()}
+                SortType.TIME_ASC -> {repository.getAllByIdDesc().first()}
+            }
+
+            for (timer in loadedTimers){
                 _timers.add(
                     TimerUiState(
                         id = timer.id,
-                        initialTime = getClockTimeWithoutMillis(timer.time.toLong())
+                        initialTime = getClockTimeWithoutMillis(timer.time.toLong()*1000)
                     )
                 )
             }

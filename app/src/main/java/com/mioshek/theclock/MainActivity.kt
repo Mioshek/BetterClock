@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.mioshek.theclock.db.AppDatabase
 import com.mioshek.theclock.ui.theme.TheClockTheme
 
 class MainActivity : ComponentActivity() {
@@ -43,7 +44,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
-//        AppDatabase.closeDb()
+        AppDatabase.closeDb()
     }
 
     override fun onResume() {
