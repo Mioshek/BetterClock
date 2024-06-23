@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -26,6 +27,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -62,6 +65,7 @@ fun TimerView(
     var pickedTime by remember { mutableStateOf(TimerUiState()) }
     var showInvalidArgumentAllert by remember { mutableStateOf(false) }
     var pickedPreset by remember{ mutableStateOf(arrayOf(0,0,0))}
+    var blurValue by remember { mutableStateOf(0.dp)}
 
     fun changePreset(hours: Int, minutes: Int, seconds: Int){
         pickedPreset = arrayOf(hours, minutes, seconds)
@@ -71,9 +75,12 @@ fun TimerView(
     val seconds = (0..59).map { i -> if (i < 10) "0$i" else "$i"  }.toTypedArray()
     val minutes = seconds
     val hours = (0..99).map { i -> if (i < 10) "0$i" else "$i"  }.toTypedArray()
+    blurValue = if (pickingTime) 8.dp else 0.dp
 
     Box(modifier = modifier.fillMaxSize()){
-        Box(modifier = modifier.fillMaxSize()){
+        Box(modifier = modifier
+            .fillMaxSize()
+            .blur(radius = blurValue)){
             Column(
                 modifier = modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -81,35 +88,42 @@ fun TimerView(
                 LazyColumn(
                     userScrollEnabled = !pickingTime,
                     modifier = modifier
-                        .fillMaxHeight(0.9f)
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .padding(10.dp)
                 ) {
                     itemsIndexed(timers){index, timer ->
-                        SingleTimerView(timer, timerViewModel)
+                        SingleTimerView(index, timer, timerViewModel)
                     }
-                }
-
-                if(!pickingTime){
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "NewTimer",
-                        modifier = Modifier
-                            .size(40.dp)
-                            .padding(5.dp)
-                            .clickable(enabled = !pickingTime) {
-                                pickingTime = true
-                            }
-                    )
                 }
             }
         }
 
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(bottom = 10.dp)
+                .blur(radius = blurValue),
+            contentAlignment = Alignment.BottomCenter
+        ){
+            if(!pickingTime){
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "NewTimer",
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(MaterialTheme.colorScheme.background, CircleShape)
+                        .clickable(enabled = !pickingTime) {
+                            pickingTime = true
+                        }
+                        .padding(10.dp)
+                )
+            }
+        }
         if (pickingTime){
             Box(
                 modifier = modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(0.6f))
+                    .background(Color.Black.copy(0.7f))
             ){
                 Column(
                     modifier = modifier
@@ -130,7 +144,9 @@ fun TimerView(
 
                     ExampleTimerPresetsList(
                         ::changePreset,
-                        modifier = modifier.fillMaxHeight(0.5f).fillMaxWidth()
+                        modifier = modifier
+                            .fillMaxHeight(0.5f)
+                            .fillMaxWidth()
                     )
 
                     Row(
@@ -185,7 +201,12 @@ fun TimerView(
 }
 
 @Composable
-fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modifier: Modifier = Modifier){
+fun SingleTimerView(
+    index: Int,
+    timer:TimerUiState,
+    timerViewModel: TimerListViewModel,
+    modifier: Modifier = Modifier
+){
     var showConfirmAlert by remember { mutableStateOf(false) }
 
     val progressBarGradient = Brush.horizontalGradient(
@@ -213,19 +234,19 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
             when(timer.timerState){
 
                 TimingState.OFF -> {
-                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING)
+                    TimerIcon(index, R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING)
                 }
 
                 TimingState.RUNNING -> {
-                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF)
+                    TimerIcon(index, R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF)
 
-                    TimerIcon(R.drawable.pause, "Pause", timerViewModel, timer, TimingState.PAUSED)
+                    TimerIcon(index, R.drawable.pause, "Pause", timerViewModel, timer, TimingState.PAUSED)
                 }
 
                 TimingState.PAUSED -> {
-                    TimerIcon(R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF)
+                    TimerIcon(index, R.drawable.stop, "Reset", timerViewModel, timer, TimingState.OFF)
 
-                    TimerIcon(R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING)
+                    TimerIcon(index, R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING)
                 }
             }
 
@@ -254,7 +275,7 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
                 modifier = modifier
                     .padding(bottom = 10.dp)
                     .fillMaxWidth(timer.remainingProgress)
-                    .size(2.dp)
+                    .size(3.dp)
                     .background(progressBarGradient),
             )
             Box(
@@ -266,12 +287,21 @@ fun SingleTimerView(timer:TimerUiState, timerViewModel: TimerListViewModel, modi
                 Text(text = StringFormatters.formatPercentage(timer.remainingProgress) + "%")
             }
         }
-        if (showConfirmAlert) ConfirmAlert(onDismiss = {showConfirmAlert = false}, onConfirm = {timerViewModel.deleteTimer(timer)})
+        if (showConfirmAlert){
+            ConfirmAlert(
+                onDismiss = {showConfirmAlert = false},
+                onConfirm = {
+                    timerViewModel.deleteTimer(timer.id, index)
+                    showConfirmAlert = false
+                }
+            )
+        }
     }
 }
 
 @Composable
 fun TimerIcon(
+    index: Int,
     icon: Int,
     description: String,
     timerViewModel: TimerListViewModel,
@@ -287,6 +317,7 @@ fun TimerIcon(
             .clickable {
                 val previousTimerState = timer.timerState
                 timerViewModel.updateTimer(
+                    index,
                     TimerUiState(
                         timer.id,
                         timer.name,
@@ -299,13 +330,17 @@ fun TimerIcon(
 
                 when (timingState) {
                     TimingState.OFF -> {
-                        timerViewModel.updateTimer(TimerUiState(id = timer.id))
+                        timerViewModel.updateTimer(
+                            index,
+                            TimerUiState(id = timer.id, initialTime = timer.initialTime)
+                        )
                     }
 
                     TimingState.RUNNING -> {
                         if (previousTimerState == TimingState.PAUSED) timerViewModel.resumeTimer(
-                            timer.id
-                        ) else timerViewModel.runTimer(timer.id)
+                            index
+                        )
+                        else timerViewModel.runTimer(index)
                     }
 
                     TimingState.PAUSED -> {}
@@ -344,7 +379,11 @@ fun TimerPresetCard(onClick: KFunction3<Int, Int, Int, Unit>, preset: TimerUiSta
             .fillMaxWidth()
             .padding(10.dp)
             .clickable {
-                onClick(preset.initialTime.hours.toInt(), preset.initialTime.minutes.toInt(), preset.initialTime.seconds.toInt())
+                onClick(
+                    preset.initialTime.hours.toInt(),
+                    preset.initialTime.minutes.toInt(),
+                    preset.initialTime.seconds.toInt()
+                )
             }
     ) {
         Column(
