@@ -1,7 +1,10 @@
 package com.mioshek.mioshekassets
 
+import android.util.Log
+import android.util.Range
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -23,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -43,8 +48,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @Composable
 fun rememberPickerState() = remember { PickerState() }
@@ -67,12 +75,15 @@ fun SliderWheelNumberPicker(
     dividerColor: Color = Color.White,
     textColor: Color = Color.Black,
     showDivider: Boolean = false,
-    onValueChange: (String) -> Unit = {},
+    onValueChange: (ArrayList<Long>) -> Unit = {},
     padding: Dp = 10.dp,
     fontSize: TextUnit = 60.sp,
     showHandIcon: Boolean = false,
     alignment:  Alignment.Vertical = Alignment.CenterVertically
 ){
+    var pickedValues by remember {
+        mutableStateOf(arrayListOf(0L,0L,0L))
+    }
     val listScrollCount = Int.MAX_VALUE
     val listScrollMiddle = listScrollCount / 2
     val visibleItemsMiddle = visibleItemsCount /2
@@ -98,9 +109,10 @@ fun SliderWheelNumberPicker(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = alignment
         ) {
-            wheelValues.forEachIndexed { index, column ->
+            wheelValues.forEachIndexed { tableIndex, column ->
                 val listStartIndex = listScrollMiddle - listScrollMiddle % column.size - visibleItemsMiddle + startIndex
                 val listState = rememberLazyListState(initialFirstVisibleItemIndex = listStartIndex)
+                val coroutineScope = rememberCoroutineScope()
                 val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
                 LazyColumn(
@@ -112,6 +124,8 @@ fun SliderWheelNumberPicker(
                         .padding(start = padding, end = padding)
                 ){
                     items(listScrollCount){index ->
+                        pickedValues[tableIndex] = (column[((listState.firstVisibleItemIndex + 1) % column.size)]).toLong()
+                        onValueChange(pickedValues)
                         Text(
                             text = column[index % column.size],
                             maxLines = 1,
@@ -119,8 +133,15 @@ fun SliderWheelNumberPicker(
                             fontFamily = FontFamily.Serif,
                             overflow = TextOverflow.Clip,
                             modifier = Modifier
-                                .onSizeChanged { size -> itemHeightPixels.value = size.height }
+                                .onSizeChanged { size ->
+                                    itemHeightPixels.value = size.height
+                                }
                                 .then(modifier.padding(top = padding, bottom = padding))
+                                .clickable {
+                                    coroutineScope.launch {
+                                        listState.scrollToItem(index - 1)
+                                    }
+                                }
                         )
                     }
                 }
