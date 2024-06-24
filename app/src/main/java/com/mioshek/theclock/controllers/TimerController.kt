@@ -24,6 +24,7 @@ data class TimerUiState(
     val updatableTime: ClockTime = initialTime.copy(),
     val timerState: TimingState = TimingState.OFF,
     val remainingProgress: Float = 1f,
+    val visible: Boolean = true
 )
 
 enum class SortType{
@@ -53,7 +54,8 @@ class TimerListViewModel(
     }
 
     fun deleteTimer(dbIndex: Int, uiIndex: Int){
-        _timers.removeAt(uiIndex)
+        val updatedTimer = _timers[uiIndex].copy(visible = false)
+        _timers[uiIndex] = updatedTimer
         CoroutineScope(Dispatchers.Default).launch{
             repository.delete(dbIndex)
         }
@@ -103,7 +105,7 @@ class TimerListViewModel(
                 val remainingTime = future - currentTime
                 time = getFullClockTime(remainingTime)
                 progressBarStatus = remainingTime.toFloat() / timerTime.toFloat()
-                updateTimer(uiIndex,TimerUiState(timer.id, timer.name, timer.initialTime, time, timer.timerState, progressBarStatus))
+                updateTimer(uiIndex, timer.copy(updatableTime = time, remainingProgress = progressBarStatus))
                 delay(cycleTimeMs) // 60FPS
                 while (timer.timerState == TimingState.PAUSED){
                     timer = _timers[uiIndex]
@@ -128,7 +130,7 @@ class TimerListViewModel(
 
     fun resumeTimer(uiIndex: Int){
         val timer = _timers[uiIndex]
-        val newTimer = TimerUiState(timer.id, timer.name, timer.initialTime, timer.updatableTime, TimingState.RUNNING, timer.remainingProgress)
+        val newTimer = timer.copy(timerState = TimingState.RUNNING)
         updateTimer(uiIndex, newTimer)
     }
 

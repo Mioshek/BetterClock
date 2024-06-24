@@ -92,7 +92,7 @@ fun TimerView(
                         .padding(10.dp)
                 ) {
                     itemsIndexed(timers){index, timer ->
-                        SingleTimerView(index, timer, timerViewModel)
+                        if (timer.visible)  SingleTimerView(index, timer, timerViewModel)
                     }
                 }
             }
@@ -149,39 +149,35 @@ fun TimerView(
                             .fillMaxWidth()
                     )
 
-                    Row(
-                        modifier = modifier
+                    Row(modifier = modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
                             .padding(10.dp),
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text(
-                            text = "Cancel",
-                            modifier = modifier
-                                .border(
-                                    width = 1.dp,
-                                    MaterialTheme.colorScheme.onSurface.copy(0.2f),
-                                    RoundedCornerShape(10.dp)
-                                )
-                                .padding(12.dp)
-                                .clickable {
-                                    pickingTime = false
-                                }
-                        )
-                        
+                        Box(modifier = Modifier
+                            .padding(10.dp)
+                            .clickable{pickingTime = false},
+                            contentAlignment = Alignment.CenterEnd
+                        ){
+                            Text(
+                                text = "Cancel",
+                                modifier = modifier
+                                    .border(
+                                        width = 1.dp,
+                                        MaterialTheme.colorScheme.onSurface.copy(0.2f),
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .padding(12.dp)
+
+                            )
+                        }
+
                         Spacer(modifier = modifier.padding(10.dp))
-                        
-                        Text(
-                            text = "Save",
-                            modifier = modifier
-                                .border(
-                                    width = 1.dp,
-                                    MaterialTheme.colorScheme.onSurface.copy(0.2f),
-                                    RoundedCornerShape(10.dp)
-                                )
-                                .padding(12.dp)
+
+                        Box(modifier = Modifier
+                                .padding(10.dp)
                                 .clickable {
                                     if (pickedTime.initialTime == ClockTime()) {
                                         showInvalidArgumentAllert = true
@@ -189,8 +185,20 @@ fun TimerView(
                                         timerViewModel.createTimer(pickedTime)
                                         pickingTime = false
                                     }
-                                }
-                        )
+                                },
+                            contentAlignment = Alignment.CenterStart
+                        ){
+                            Text(
+                                text = "Save",
+                                modifier = modifier
+                                    .border(
+                                        width = 1.dp,
+                                        MaterialTheme.colorScheme.onSurface.copy(0.2f),
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .padding(12.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -318,14 +326,7 @@ fun TimerIcon(
                 val previousTimerState = timer.timerState
                 timerViewModel.updateTimer(
                     index,
-                    TimerUiState(
-                        timer.id,
-                        timer.name,
-                        timer.initialTime,
-                        timer.updatableTime,
-                        timingState,
-                        timer.remainingProgress
-                    )
+                    timer.copy(timerState = timingState)
                 )
 
                 when (timingState) {
