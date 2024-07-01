@@ -16,7 +16,7 @@ data class ClockTime(
 )
 
 fun getFullClockTime(elapsedTime: Long): ClockTime {
-    val hours = (elapsedTime / (1000 * 60 * 60)) % 24
+    val hours = (elapsedTime / (1000 * 60 * 60))
     val minutes = (elapsedTime / (1000 * 60)) % 60
     val seconds = (elapsedTime / 1000) % 60
     val milliseconds = elapsedTime % 1000
@@ -24,7 +24,7 @@ fun getFullClockTime(elapsedTime: Long): ClockTime {
 }
 
 fun getClockTimeWithoutMillis(elapsedTime: Long): ClockTime {
-    val hours = (elapsedTime / (1000 * 60 * 60)) % 24
+    val hours = (elapsedTime / (1000 * 60 * 60))
     val minutes = (elapsedTime / (1000 * 60)) % 60
     val seconds = (elapsedTime / 1000) % 60
     return ClockTime(seconds = seconds, minutes = minutes, hours = hours)

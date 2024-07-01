@@ -74,7 +74,7 @@ fun TimerView(
     val timers = timerViewModel.timers
     val seconds = (0..59).map { i -> if (i < 10) "0$i" else "$i"  }.toTypedArray()
     val minutes = seconds
-    val hours = (0..99).map { i -> if (i < 10) "0$i" else "$i"  }.toTypedArray()
+    val hours = (0..24).map { i -> if (i < 10) "0$i" else "$i"  }.toTypedArray()
     blurValue = if (pickingTime) 8.dp else 0.dp
 
     Box(modifier = modifier.fillMaxSize()){
