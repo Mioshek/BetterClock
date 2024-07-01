@@ -16,3 +16,5 @@ package com.mioshek.theclock
 // Option to hide progress bar with percentage if the timer state is off
 // Option for disabling timer delete alerts
 // Boolean exists in TimerUiState to delete them and not moving indexes to prevent stopping coroutines
+// Find other way to shift timers
+// Sliding options when clicked !! hour should be bigger
