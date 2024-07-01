@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -106,68 +108,102 @@ fun StopwatchView(
 fun StopwatchButtons(stopwatchViewModel: StopwatchViewModel, modifier: Modifier = Modifier){
     val stopwatchUiState by stopwatchViewModel.stopwatchUiState.collectAsState()
     Row(
-        modifier = modifier
-            .padding(25.dp),
+        modifier = modifier.padding(10.dp),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.Center
     ) {
         when(stopwatchUiState.stopwatchState){
             TimingState.OFF -> {
-                Icon(
-                    painter = painterResource(id = R.drawable.play),
-                    contentDescription = "Play",
-                    modifier = modifier
-                        .size(50.dp)
-                        .clickable {
-                            stopwatchViewModel.changeStopwatchState(TimingState.RUNNING)
-                            stopwatchViewModel.runStopwatch()
-                        },
-                )
+                Box(modifier = modifier
+                    .border(1.dp, MaterialTheme.colorScheme.onBackground, RoundedCornerShape(20.dp))
+                    .clickable {
+                        stopwatchViewModel.changeStopwatchState(TimingState.RUNNING)
+                        stopwatchViewModel.runStopwatch()
+                    },
+                ){
+                    Icon(
+                        painter = painterResource(id = R.drawable.play),
+                        contentDescription = "Play",
+                        modifier = modifier
+                            .size(50.dp)
+                            .padding(10.dp)
+                    )
+                }
             }
 
             TimingState.RUNNING -> {
-                Icon(
-                    painter = painterResource(id = R.drawable.flag), contentDescription = "NewLoop",
-                    modifier = modifier
-                        .size(50.dp)
-                        .clickable { stopwatchViewModel.addStage() },
-                )
+                Box(modifier = modifier
+                    .border(1.dp, MaterialTheme.colorScheme.onBackground, RoundedCornerShape(20.dp))
+                    .clickable { stopwatchViewModel.addStage() },
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.flag),
+                        contentDescription = "NewLoop",
+                        modifier = modifier
+                            .size(50.dp)
+                            .padding(10.dp)
+                    )
+                }
 
-                Icon(
-                    painter = painterResource(id = R.drawable.pause),
-                    contentDescription = "Pause",
-                    modifier = modifier
-                        .size(50.dp)
-                        .clickable {
-                            val timestamp = System.currentTimeMillis()
-                            Storage.put("EndTime", timestamp)
-                            stopwatchViewModel.changeStopwatchState(TimingState.PAUSED)
-                        },
-                )
+                Spacer(modifier = Modifier.padding(10.dp))
+
+                Box(modifier = modifier
+                    .border(1.dp, MaterialTheme.colorScheme.onBackground, RoundedCornerShape(20.dp))
+                    .clickable {
+                        val timestamp = System.currentTimeMillis()
+                        Storage.put("EndTime", timestamp)
+                        stopwatchViewModel.changeStopwatchState(TimingState.PAUSED)
+                    },
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.pause),
+                        contentDescription = "Pause",
+                        modifier = modifier
+                            .size(50.dp)
+                            .padding(10.dp)
+                    )
+                }
             }
 
             TimingState.PAUSED -> {
-                Icon(
-                    painter = painterResource(id = R.drawable.delete),
-                    contentDescription = "Clear",
-                    modifier = modifier
-                        .size(50.dp)
-                        .clickable {
-                            stopwatchViewModel.changeStopwatchState(TimingState.OFF)
-                            stopwatchViewModel.resetStopwatch()
-                        },
-                )
+                Box(modifier = modifier
+                    .border(1.dp, MaterialTheme.colorScheme.onBackground, RoundedCornerShape(20.dp))
+                    .clickable {
+                        stopwatchViewModel.changeStopwatchState(TimingState.OFF)
+                        stopwatchViewModel.resetStopwatch()
+                    },
+                ){
+                    Icon(
+                        painter = painterResource(id = R.drawable.delete),
+                        contentDescription = "Clear",
+                        modifier = modifier
+                            .size(50.dp)
+                            .padding(10.dp)
+                    )
+                }
 
-                Icon(
-                    painter = painterResource(id = R.drawable.play),
-                    contentDescription = "Play",
+                Spacer(modifier = Modifier.padding(10.dp))
+
+                Box(
                     modifier = modifier
-                        .size(50.dp)
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.onBackground,
+                            RoundedCornerShape(20.dp)
+                        )
                         .clickable {
                             stopwatchViewModel.changeStopwatchState(TimingState.RUNNING)
                             stopwatchViewModel.resumeStopwatch()
                         },
-                )
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.play),
+                        contentDescription = "Play",
+                        modifier = modifier
+                            .size(50.dp)
+                            .padding(10.dp)
+                    )
+                }
             }
         }
     }
@@ -211,7 +247,9 @@ fun StagesView(
         ) {
             itemsIndexed(stopwatchUiState.stages) { i, stage ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp, start = 5.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 10.dp, start = 5.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
