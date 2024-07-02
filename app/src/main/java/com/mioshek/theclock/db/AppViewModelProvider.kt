@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.mioshek.theclock.TheUltimateClock
+import com.mioshek.theclock.controllers.AlarmsListViewModel
 import com.mioshek.theclock.controllers.TimerListViewModel
 
 object AppViewModelProvider {
@@ -13,6 +14,10 @@ object AppViewModelProvider {
             TimerListViewModel(
                 theUltimateClockApplication().container.timerRepository,
             )
+        }
+
+        initializer {
+            AlarmsListViewModel(theUltimateClockApplication().container.alarmsRepository)
         }
     }
 }

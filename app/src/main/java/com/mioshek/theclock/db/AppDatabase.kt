@@ -4,11 +4,17 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.mioshek.theclock.db.models.Alarms
+import com.mioshek.theclock.db.models.AlarmsDao
+import com.mioshek.theclock.db.models.AlarmsRepository
+import com.mioshek.theclock.db.models.Timer
+import com.mioshek.theclock.db.models.TimerDao
 
-@Database(entities = [Timer::class], version = 1, exportSchema = false)
+@Database(entities = [Timer::class, Alarms::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract val timerDao: TimerDao
+    abstract val alarmsDao: AlarmsDao
 
     companion object {
         // Singleton prevents multiple instances of database opening at the same time.

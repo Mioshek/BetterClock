@@ -1,4 +1,4 @@
-package com.mioshek.theclock.db
+package com.mioshek.theclock.db.models
 
 import androidx.annotation.WorkerThread
 import androidx.room.Dao
@@ -7,7 +7,6 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
-import javax.annotation.processing.Generated
 
 @Entity(tableName = "Timer")
 data class Timer(

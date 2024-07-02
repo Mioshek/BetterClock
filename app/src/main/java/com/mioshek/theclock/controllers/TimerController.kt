@@ -9,8 +9,8 @@ import com.mioshek.theclock.data.ClockTime
 import com.mioshek.theclock.data.TimingState
 import com.mioshek.theclock.data.getClockTimeWithoutMillis
 import com.mioshek.theclock.data.getFullClockTime
-import com.mioshek.theclock.db.Timer
-import com.mioshek.theclock.db.TimerRepository
+import com.mioshek.theclock.db.models.Timer
+import com.mioshek.theclock.db.models.TimerRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
