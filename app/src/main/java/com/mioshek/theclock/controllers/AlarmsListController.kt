@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mioshek.theclock.db.models.Alarms
 import com.mioshek.theclock.db.models.AlarmsRepository
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class AlarmsUiState(
@@ -13,7 +14,8 @@ data class AlarmsUiState(
     val time: Int = 0,
     val daysOfWeek: Array<Boolean> = Array(7) { false },
     val sound: String? = null,
-    val enabled: Boolean
+    val enabled: Boolean,
+    val visible: Boolean = true
 )
 
 
@@ -21,10 +23,32 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository): ViewM
     private val _alarms = mutableStateListOf<AlarmsUiState>()
     val alarms: List<AlarmsUiState> = _alarms
 
+    init {getAllAlarms()}
+
 
     fun toggleAlarm(index: Int){
         val previousState = _alarms[index]
         _alarms[index] = previousState.copy(enabled = !previousState.enabled)
+        //Send to system clock
+    }
+
+    private fun getAllAlarms(){
+        viewModelScope.launch {
+            val importedAlarms = alarmsRepository.getAllByIdAsc().first()
+
+            for (alarm in importedAlarms){
+                _alarms.add(
+                    AlarmsUiState(
+                        id = alarm.id,
+                        name = alarm.name,
+                        time = alarm.time,
+                        daysOfWeek = decodeDaysOfWeek(alarm.daysOfWeek),
+                        sound = alarm.sound,
+                        enabled = alarm.enabled,
+                    )
+                )
+            }
+        }
     }
 
     fun upsert(alarm: AlarmsUiState){
@@ -42,6 +66,14 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository): ViewM
         }
     }
 
+    fun deleteAlarm(index: Int){
+        val deleted = _alarms[index]
+        _alarms[index] = deleted.copy(visible = false)
+        viewModelScope.launch {
+            alarmsRepository.delete(deleted.id)
+        }
+    }
+
     fun encodeDaysOfWeek(daysOfWeek: Array<Boolean>): Int {
         var encodedDays = 0
         for ((index, shouldRing) in daysOfWeek.withIndex()) {
@@ -50,6 +82,12 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository): ViewM
             }
         }
         return encodedDays
+    }
+
+    fun decodeDaysOfWeek(daysOfWeek: Int, size: Int = 7): Array<Boolean> {
+        return Array(size) { index ->
+            (daysOfWeek shr (size - 1 - index) and 1) == 1
+        }
     }
 
 

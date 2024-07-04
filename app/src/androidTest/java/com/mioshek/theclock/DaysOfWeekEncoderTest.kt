@@ -45,35 +45,68 @@ class a: AlarmsDao{
 
 }
 @RunWith(AndroidJUnit4::class)
-class DaysOfWeekEncoderTest {
+class DaysOfWeekTest {
     val alarmsListViewModel = AlarmsListViewModel(AlarmsRepository(alarmsDao = a())
     )
+
+    //Encode
     @Test
-    fun everydayTest() {
+    fun everydayTestEncode() {
         val testedValue = alarmsListViewModel.encodeDaysOfWeek(arrayOf(true, true, true, true, true, true, true))
         assertEquals(127, testedValue)
     }
     @Test
-    fun mondayTest() {
+    fun mondayTestEncode() {
         val testedValue = alarmsListViewModel.encodeDaysOfWeek(arrayOf(true, false, false, false, false, false, false))
         assertEquals(64, testedValue)
     }
 
     @Test
-    fun sundayTest() {
+    fun sundayTestEncode() {
         val testedValue = alarmsListViewModel.encodeDaysOfWeek(arrayOf(false, false, false, false, false, false, true))
         assertEquals(1, testedValue)
     }
 
     @Test
-    fun everySecondDayTest() {
+    fun everySecondDayTestEncode() {
         val testedValue = alarmsListViewModel.encodeDaysOfWeek(arrayOf(true, false, true, false, true, false, true))
         assertEquals(85, testedValue)
     }
 
     @Test
-    fun noDayTest() {
+    fun noDayTestEncode() {
         val testedValue = alarmsListViewModel.encodeDaysOfWeek(arrayOf(false, false, false, false, false, false, false))
         assertEquals(0, testedValue)
+    }
+
+    //Decode
+
+    @Test
+    fun everydayTestDecode() {
+        val testedValue = alarmsListViewModel.decodeDaysOfWeek(127)
+        assertEquals(arrayOf(true, true, true, true, true, true, true), testedValue)
+    }
+    @Test
+    fun mondayTestDecode() {
+        val testedValue = alarmsListViewModel.decodeDaysOfWeek(64)
+        assertEquals(arrayOf(true, false, false, false, false, false, false), testedValue)
+    }
+
+    @Test
+    fun sundayTestDecode() {
+        val testedValue = alarmsListViewModel.decodeDaysOfWeek(1)
+        assertEquals(arrayOf(false, false, false, false, false, false, true), testedValue)
+    }
+
+    @Test
+    fun everySecondDayTestDecode() {
+        val testedValue = alarmsListViewModel.decodeDaysOfWeek(85)
+        assertEquals(arrayOf(true, false, true, false, true, false, true), testedValue)
+    }
+
+    @Test
+    fun noDayTestDecode() {
+        val testedValue = alarmsListViewModel.decodeDaysOfWeek(0)
+        assertEquals(arrayOf(false, false, false, false, false, false, false), testedValue)
     }
 }
