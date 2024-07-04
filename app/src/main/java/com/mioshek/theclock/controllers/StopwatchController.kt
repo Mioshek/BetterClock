@@ -3,8 +3,8 @@ package com.mioshek.theclock.controllers
 import androidx.lifecycle.ViewModel
 import com.mioshek.theclock.data.ClockTime
 import com.mioshek.theclock.data.Storage
+import com.mioshek.theclock.data.TimeFormatter.Companion.getFullClockTime
 import com.mioshek.theclock.data.TimingState
-import com.mioshek.theclock.data.getFullClockTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

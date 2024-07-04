@@ -9,13 +9,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class AlarmUiState(
     val id: Int = 0,
     val name: String? = null,
-    val time: Int = 0,
+    val initialTime: Int = 0,
+    val ringTime: Int = initialTime,
     val daysOfWeek: Array<Boolean> = Array(7) { false },
     val sound: String? = null,
     val enabled: Boolean = false,
@@ -41,7 +41,7 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository) : View
                     AlarmUiState(
                         id = alarm.id,
                         name = alarm.name,
-                        time = alarm.time,
+                        initialTime = alarm.time,
                         daysOfWeek = decodeDaysOfWeek(alarm.daysOfWeek),
                         sound = alarm.sound,
                         enabled = alarm.enabled,
@@ -67,7 +67,7 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository) : View
             alarmsRepository.upsert(
                 Alarms(
                     name = alarm.name,
-                    time = alarm.time,
+                    time = alarm.initialTime,
                     daysOfWeek = encodeDaysOfWeek(alarm.daysOfWeek),
                     sound = alarm.sound,
                     enabled = alarm.enabled

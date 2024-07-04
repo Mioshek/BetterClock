@@ -123,7 +123,7 @@ fun TimerView(
             Box(
                 modifier = modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(0.7f))
+                    .background(MaterialTheme.colorScheme.background.copy(0.7f))
             ){
                 Column(
                     modifier = modifier

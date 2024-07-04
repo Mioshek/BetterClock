@@ -18,3 +18,4 @@ package com.mioshek.theclock
 // Boolean exists in TimerUiState to delete them and not moving indexes to prevent stopping coroutines
 // Find other way to shift timers
 // Sliding options when clicked !! hour should be bigger
+// Option for selecting all days at the beginning
