@@ -23,20 +23,20 @@ data class AlarmUiState(
 )
 
 
-class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository): ViewModel() {
+class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository) : ViewModel() {
     private val _alarm = MutableStateFlow(AlarmUiState())
     val alarm: StateFlow<AlarmUiState> = _alarm.asStateFlow()
     private val _alarms = mutableStateListOf<AlarmUiState>()
     val alarms: List<AlarmUiState> = _alarms
 
-    init {getAllAlarms()}
+    init {
+        getAllAlarms()
+    }
 
-
-    private fun getAllAlarms(){
+    private fun getAllAlarms() {
         viewModelScope.launch {
             val importedAlarms = alarmsRepository.getAllByIdAsc().first()
-
-            for (alarm in importedAlarms){
+            for (alarm in importedAlarms) {
                 _alarms.add(
                     AlarmUiState(
                         id = alarm.id,
@@ -51,22 +51,24 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository): ViewM
         }
     }
 
-    fun changeUiState(alarm: AlarmUiState) = _alarm.update {alarm}
+    fun changeUiState(alarm: AlarmUiState) {
+        _alarm.value = alarm
+    }
 
-    fun toggleAlarm(index: Int){
+    fun toggleAlarm(index: Int) {
         val previousState = _alarms[index]
         _alarms[index] = previousState.copy(enabled = !previousState.enabled)
         //Send to system clock
     }
 
-    fun upsert(alarm: AlarmUiState){
+    fun upsert(alarm: AlarmUiState) {
         _alarms.add(alarm)
         viewModelScope.launch {
             alarmsRepository.upsert(
                 Alarms(
                     name = alarm.name,
                     time = alarm.time,
-                    daysOfWeek = 1,
+                    daysOfWeek = encodeDaysOfWeek(alarm.daysOfWeek),
                     sound = alarm.sound,
                     enabled = alarm.enabled
                 )
@@ -74,7 +76,7 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository): ViewM
         }
     }
 
-    fun deleteAlarm(index: Int){
+    fun deleteAlarm(index: Int) {
         val deleted = _alarms[index]
         _alarms[index] = deleted.copy(visible = false)
         viewModelScope.launch {
@@ -97,6 +99,4 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository): ViewM
             (daysOfWeek shr (size - 1 - index) and 1) == 1
         }
     }
-
-
 }
