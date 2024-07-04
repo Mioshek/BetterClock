@@ -73,9 +73,9 @@ fun SliderWheelNumberPicker(
     startIndex: Array<Int>,
     modifier: Modifier = Modifier,
     visibleItemsCount: Int = 3,
-    dividerColor: Color = Color.White,
+    stringSeparator: String = ":",
     textColor: Color = Color.Black,
-    showDivider: Boolean = false,
+    showSeparator: Boolean = false,
     onValueChange: (ArrayList<Long>) -> Unit = {},
     padding: Dp = 10.dp,
     fontSize: TextUnit = 60.sp,
@@ -118,7 +118,6 @@ fun SliderWheelNumberPicker(
                 val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
                 coroutineScope.launch { listState.scrollToItem(listStartIndex) }
 
-
                 LazyColumn(
                     state = listState,
                     flingBehavior = flingBehavior,
@@ -130,8 +129,9 @@ fun SliderWheelNumberPicker(
                     items(listScrollCount){index ->
                         pickedValues[tableIndex] = (column[((listState.firstVisibleItemIndex + 1) % column.size)]).toLong()
                         onValueChange(pickedValues)
+                        val stringNumber = column[index % column.size]
                         Text(
-                            text = column[index % column.size],
+                            text = if(stringNumber.length == 1) "  $stringNumber" else stringNumber,
                             maxLines = 1,
                             fontSize = fontSize,
                             fontFamily = FontFamily.Serif,
@@ -148,6 +148,10 @@ fun SliderWheelNumberPicker(
                                 }
                         )
                     }
+                }
+
+                if(tableIndex != wheelValues.size -1 && showSeparator){
+                    Text(text = stringSeparator, fontSize = fontSize)
                 }
             }
         }

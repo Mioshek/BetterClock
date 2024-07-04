@@ -5,32 +5,32 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mioshek.theclock.db.models.Alarms
 import com.mioshek.theclock.db.models.AlarmsRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class AlarmsUiState(
+data class AlarmUiState(
     val id: Int = 0,
     val name: String? = null,
     val time: Int = 0,
     val daysOfWeek: Array<Boolean> = Array(7) { false },
     val sound: String? = null,
-    val enabled: Boolean,
+    val enabled: Boolean = false,
     val visible: Boolean = true
 )
 
 
 class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository): ViewModel() {
-    private val _alarms = mutableStateListOf<AlarmsUiState>()
-    val alarms: List<AlarmsUiState> = _alarms
+    private val _alarm = MutableStateFlow(AlarmUiState())
+    val alarm: StateFlow<AlarmUiState> = _alarm.asStateFlow()
+    private val _alarms = mutableStateListOf<AlarmUiState>()
+    val alarms: List<AlarmUiState> = _alarms
 
     init {getAllAlarms()}
 
-
-    fun toggleAlarm(index: Int){
-        val previousState = _alarms[index]
-        _alarms[index] = previousState.copy(enabled = !previousState.enabled)
-        //Send to system clock
-    }
 
     private fun getAllAlarms(){
         viewModelScope.launch {
@@ -38,7 +38,7 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository): ViewM
 
             for (alarm in importedAlarms){
                 _alarms.add(
-                    AlarmsUiState(
+                    AlarmUiState(
                         id = alarm.id,
                         name = alarm.name,
                         time = alarm.time,
@@ -51,7 +51,15 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository): ViewM
         }
     }
 
-    fun upsert(alarm: AlarmsUiState){
+    fun changeUiState(alarm: AlarmUiState) = _alarm.update {alarm}
+
+    fun toggleAlarm(index: Int){
+        val previousState = _alarms[index]
+        _alarms[index] = previousState.copy(enabled = !previousState.enabled)
+        //Send to system clock
+    }
+
+    fun upsert(alarm: AlarmUiState){
         _alarms.add(alarm)
         viewModelScope.launch {
             alarmsRepository.upsert(
