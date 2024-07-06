@@ -98,7 +98,7 @@ class TimerListViewModel(
         var time: ClockTime
         val cycleTimeMs = 17L
 
-        CoroutineScope(Dispatchers.Default).launch {
+        CoroutineScope(Dispatchers.Main).launch {
             while (System.currentTimeMillis() < future - cycleTimeMs && timer.timerState == TimingState.RUNNING) {
                 timer = _timers[uiIndex]
                 val currentTime = System.currentTimeMillis()

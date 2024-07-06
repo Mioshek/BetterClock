@@ -54,6 +54,7 @@ import com.mioshek.theclock.controllers.TimerUiState
 import com.mioshek.theclock.data.ClockTime
 import com.mioshek.theclock.data.TimingState
 import com.mioshek.theclock.db.AppViewModelProvider
+import com.mioshek.theclock.ui.theme.displayFontFamily
 import kotlin.reflect.KFunction3
 
 @Composable
@@ -163,6 +164,7 @@ fun TimerView(
                         ){
                             Text(
                                 text = "Cancel",
+                                fontFamily = displayFontFamily,
                                 modifier = modifier
                                     .border(
                                         width = 1.dp,
@@ -170,7 +172,6 @@ fun TimerView(
                                         RoundedCornerShape(10.dp)
                                     )
                                     .padding(12.dp)
-
                             )
                         }
 
@@ -190,6 +191,7 @@ fun TimerView(
                         ){
                             Text(
                                 text = "Save",
+                                fontFamily = displayFontFamily,
                                 modifier = modifier
                                     .border(
                                         width = 1.dp,
@@ -238,7 +240,7 @@ fun SingleTimerView(
                 .fillMaxWidth()
                 .padding(start = 15.dp)
         ) {
-            Text(text = getStringTime(timer.updatableTime, 0,3), fontSize = 40.sp)
+            Text(text = getStringTime(timer.updatableTime, 0,3), fontSize = 40.sp, fontFamily = displayFontFamily)
             when(timer.timerState){
 
                 TimingState.OFF -> {
@@ -292,7 +294,7 @@ fun SingleTimerView(
                     .padding(bottom = 10.dp),
                 contentAlignment = Alignment.TopEnd
             ){
-                Text(text = StringFormatters.formatPercentage(timer.remainingProgress) + "%")
+                Text(text = StringFormatters.formatPercentage(timer.remainingProgress) + "%", fontFamily = displayFontFamily,)
             }
         }
         if (showConfirmAlert){
@@ -392,8 +394,8 @@ fun TimerPresetCard(onClick: KFunction3<Int, Int, Int, Unit>, preset: TimerUiSta
             verticalArrangement = Arrangement.Center,
             modifier = modifier.padding(8.dp)
         ) {
-            Text(text = preset.name, fontSize = 12.sp, fontFamily = FontFamily.Default)
-            Text(text = getStringTime(preset.initialTime, 0, 3), fontSize = 30.sp)
+            Text(text = preset.name, fontSize = 12.sp, fontFamily = displayFontFamily)
+            Text(text = getStringTime(preset.initialTime, 0, 3), fontSize = 30.sp, fontFamily = displayFontFamily)
         }
     }
 }
@@ -402,16 +404,16 @@ fun TimerPresetCard(onClick: KFunction3<Int, Int, Int, Unit>, preset: TimerUiSta
 fun ZeroPickedDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Invalid Value Of Picked Argument!") },
-        text = { Text("Time Picked Cannot Be Zero!") },
+        title = { Text(text = "Invalid Value Of Picked Argument!", fontFamily = displayFontFamily) },
+        text = { Text("Time Picked Cannot Be Zero!", fontFamily = displayFontFamily) },
         confirmButton = {
             Button(onClick = onDismiss) {
-                Text("OK")
+                Text("OK", fontFamily = displayFontFamily)
             }
         },
         dismissButton = {
             Button(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancel", fontFamily = displayFontFamily)
             }
         }
     )
@@ -421,16 +423,16 @@ fun ZeroPickedDialog(onDismiss: () -> Unit) {
 fun ConfirmAlert(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Delete") },
-        text = { Text("Are you sure you want to delete timer?") },
+        title = { Text(text = "Delete", fontFamily = displayFontFamily) },
+        text = { Text("Are you sure you want to delete timer?", fontFamily = displayFontFamily) },
         confirmButton = {
             Button(onClick = onConfirm) {
-                Text("OK")
+                Text("OK", fontFamily = displayFontFamily)
             }
         },
         dismissButton = {
             Button(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancel", fontFamily = displayFontFamily)
             }
         }
     )

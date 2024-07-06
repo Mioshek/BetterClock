@@ -44,6 +44,7 @@ import com.mioshek.theclock.controllers.StopwatchViewModel
 import com.mioshek.theclock.data.Storage
 import com.mioshek.theclock.data.TimingState
 import com.mioshek.theclock.ui.theme.TheClockTheme
+import com.mioshek.theclock.ui.theme.displayFontFamily
 import kotlinx.coroutines.delay
 
 @Composable
@@ -67,7 +68,7 @@ fun StopwatchView(
             Text(
                 text = getStringTime(clock = stopwatchUiState.time, 0, 4),
                 fontSize = 50.sp,
-                fontFamily = FontFamily.Serif,
+                fontFamily = displayFontFamily,
             )
         }
 
@@ -232,9 +233,9 @@ fun StagesView(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(text = "Stage")
-            Text(text = "Stage Time")
-            Text(text = "Overall time")
+            Text(text = "Stage" , fontFamily = displayFontFamily)
+            Text(text = "Stage Time" , fontFamily = displayFontFamily)
+            Text(text = "Overall time" , fontFamily = displayFontFamily)
         }
 
         Divider(color = MaterialTheme.colorScheme.onBackground.copy(0.6f), thickness = 1.dp)
@@ -255,15 +256,15 @@ fun StagesView(
                 ) {
                     Text(
                         text = if (i < 9) "0${i+1}" else "${i+1}",
-                        fontFamily = FontFamily.Default
+                        fontFamily = displayFontFamily
                     )
                     Text(
                         text = "Stage Time",
-                        fontFamily = FontFamily.Default
+                        fontFamily = displayFontFamily
                     )
                     Text(
                         text = getStringTime(stage, 0, 4),
-                        fontFamily = FontFamily.Default
+                        fontFamily = displayFontFamily
                     )
                 }
             }

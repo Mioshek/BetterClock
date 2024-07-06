@@ -2,6 +2,10 @@ package com.mioshek.theclock.views.clock
 
 import android.graphics.Typeface
 import android.util.Log
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,9 +16,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -54,6 +60,8 @@ import com.mioshek.theclock.controllers.AlarmsListViewModel
 import com.mioshek.theclock.controllers.AlarmUiState
 import com.mioshek.theclock.data.TimeFormatter
 import com.mioshek.theclock.db.AppViewModelProvider
+import com.mioshek.theclock.ui.theme.bodyFontFamily
+import com.mioshek.theclock.ui.theme.displayFontFamily
 
 @Composable
 fun AlarmsListView(
@@ -72,8 +80,8 @@ fun AlarmsListView(
         LazyColumn(
             modifier = modifier.padding(top = 40.dp)
         ) {
-            items(alarms.size){
-                AlarmCard(alarm = alarms[it])
+            itemsIndexed(alarms){index, value ->
+                AlarmCard(index = index, alarm = value, alarmsListViewModel)
             }
         }
 
@@ -115,87 +123,61 @@ fun AlarmsListView(
 
 @Composable
 fun AlarmCard(
+    index: Int,
     alarm: AlarmUiState,
+    alarmsViewModel: AlarmsListViewModel,
     modifier: Modifier = Modifier
 ){
+    var extended by remember{mutableStateOf(false)}
+
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground.copy(0.1f)),
-        modifier = modifier.padding(10.dp)
+        modifier = modifier
+            .padding(10.dp)
+            .clickable {
+                extended = !extended
+            }
     ){
-//        Row(
-//            verticalAlignment = Alignment.CenterVertically,
-//            modifier = modifier.padding(4.dp)
-//        ) {
-//            Box(){
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                ) {
-//                    val text = TimeFormatter.format(alarm.initialTime,false)
-//                    Text(
-//                        text = text[0],
-//                        fontSize = 40.sp,
-//                        fontFamily = FontFamily(Typeface.MONOSPACE),
-//                    )
-//                    if (text.size == 2){
-//                        Text(
-//                            text = text[1],
-//                            fontSize = 20.sp,
-//                            fontFamily = FontFamily(Typeface.MONOSPACE),
-//                        )
-//                    }
-//                }
-//            }
-//
-//
-//            Column {
-//                Box(
-//                ) {
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        modifier = modifier
-//                    ) {
-//                        SelectedDaysView(alarm.daysOfWeek, onClick={}, modifier = modifier.weight(0.8f))
-//                        Switch(checked = true, onCheckedChange = {}, modifier = modifier
-//                            .padding(start = 10.dp)
-//                            .weight(0.4f))
-//                    }
-//                }
-//
-//                Box(
-//                contentAlignment = Alignment.CenterEnd,
-//                modifier = modifier
-//                    .padding(bottom = 5.dp)
-//                    .fillMaxWidth()
-//                ){
-//                    Text(text = "Starts in 10 hours and 9 minutes", fontSize = 12.sp)
-//                }
-//            }
-//        }
-        Column {
+        Column(
+            modifier = modifier.animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+        ) {
             Row (
-                verticalAlignment = Alignment.Bottom,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = modifier
                     .fillMaxWidth()
                     .padding(start = 10.dp, end = 10.dp)
             ){
                 Box(
-                    contentAlignment = Alignment.CenterStart
+                    contentAlignment = Alignment.CenterStart,
                 ){
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         val text = TimeFormatter.format(alarm.initialTime,false)
                         Text(
                             text = text[0],
-                            fontSize = 40.sp,
-                            fontFamily = FontFamily(Typeface.MONOSPACE),
+                            fontSize = 50.sp,
+                            fontFamily = displayFontFamily,
+                            fontWeight = FontWeight.W600,
                         )
-                        if (text.size == 2){
+                        Text(
+                            text = text[1],
+                            fontSize = 50.sp,
+                            fontFamily = displayFontFamily,
+                            fontWeight = FontWeight.W600,
+                            modifier = modifier.padding(end = 5.dp)
+                        )
+                        if (text.size == 3){
                             Text(
-                                text = text[1],
-                                fontSize = 20.sp,
-                                fontFamily = FontFamily(Typeface.MONOSPACE),
+                                text = text[2],
+                                fontSize = 25.sp,
+                                fontFamily = displayFontFamily,
                             )
                         }
                     }
@@ -203,25 +185,48 @@ fun AlarmCard(
 
                 Box(
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    Switch(
+                        checked = alarm.enabled,
+                        onCheckedChange = {
+                            alarmsViewModel.toggleAlarm(index)
+                        },
                         modifier = modifier
-                    ) {
-                        SelectedDaysView(alarm.daysOfWeek, onClick={}, modifier = modifier.weight(0.8f))
-                        Switch(checked = true, onCheckedChange = {}, modifier = modifier
-                            .padding(start = 10.dp)
-                            .weight(0.4f))
-                    }
+                    )
+                }
+            }
+
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier.fillMaxWidth()
+            ){
+                Box(modifier = modifier.fillMaxWidth(0.8f)){
+                    SelectedDaysView(alarm.daysOfWeek, onClick={})
                 }
             }
 
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = modifier
-                    .padding(bottom = 5.dp)
+                    .padding(bottom = 5.dp, top = 5.dp)
                     .fillMaxWidth()
             ){
-                Text(text = "Starts in 10 hours and 9 minutes", fontSize = 12.sp)
+                Text(
+                    text = TimeFormatter.calculateTimeLeft(alarm.initialTime, alarm.daysOfWeek),
+                    fontSize = 12.sp,
+                    fontFamily = bodyFontFamily,
+                    fontWeight = FontWeight.Light
+                )
+            }
+
+            if (extended){
+                Box(modifier = modifier.fillMaxWidth()){
+                    Text(
+                        text = "Settings",
+                        fontSize = 20.sp,
+                        fontFamily = bodyFontFamily,
+                        fontWeight = FontWeight.Light
+                    )
+                }
             }
         }
     }
@@ -269,7 +274,7 @@ fun AlarmCreatorView(
         ) {
             SelectedDaysView(
                 selectedDays = createdAlarmUiState.daysOfWeek,
-                textPadding = 10.dp,
+                isFormView = true,
                 onClick = {
                     startPickerIndex = tempIndexes
                     val startingSelectedDays = createdAlarmUiState.daysOfWeek.copyOf()
@@ -362,12 +367,6 @@ fun AlarmCreatorView(
                                 )
                             )
                             onClick()
-                            Log.d(
-                                "Created:",
-                                alarmsViewModel.alarms
-                                    .last()
-                                    .toString()
-                            )
                         }
                         .padding(start = boxWidth / 3)
                 ) {
@@ -381,16 +380,18 @@ fun AlarmCreatorView(
 @Composable
 fun SelectedDaysView(
     selectedDays: Array<Boolean>,
-    textPadding: Dp = 0.dp,
+    isFormView: Boolean = false,
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ){
-    val days = listOf("M", "T", "W", "T", "F", "S", "S")
+    val padding = if(isFormView) 10.dp else 0.dp
+    val fontSize = if(isFormView) 18.sp else 14.sp
+
+    val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 10.dp, end = 10.dp)
     ){
         days.forEachIndexed{ index, value ->
             Box(
@@ -406,11 +407,11 @@ fun SelectedDaysView(
                 Text(
                     text = value,
                     color = color,
-                    modifier = modifier.padding(textPadding),
+                    modifier = modifier.padding(padding),
                     textDecoration = if(selectedDays[index]) TextDecoration.Underline else TextDecoration.None,
-                    fontFamily = FontFamily(Typeface.MONOSPACE),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontFamily = bodyFontFamily,
+                    fontSize = fontSize,
+                    fontWeight = FontWeight.W900
                 )
             }
         }
@@ -420,5 +421,5 @@ fun SelectedDaysView(
 @Composable
 @Preview(showBackground = true, showSystemUi = true)
 fun AlarmCardPreview(){
-    AlarmCard(alarm = AlarmUiState())
+//    AlarmCard(alarm = AlarmUiState())
 }

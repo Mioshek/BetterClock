@@ -19,3 +19,6 @@ package com.mioshek.theclock
 // Find other way to shift timers
 // Sliding options when clicked !! hour should be bigger
 // Option for selecting all days at the beginning
+// Move timers, alarms the way user wants, reorder, fluid, by holding and then moving up or down with an animation
+// Timer form should disappear after clicking outside of all picking
+// Stop all timers button

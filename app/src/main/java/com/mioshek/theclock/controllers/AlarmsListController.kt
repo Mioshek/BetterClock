@@ -3,6 +3,7 @@ package com.mioshek.theclock.controllers
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mioshek.theclock.data.TimeFormatter
 import com.mioshek.theclock.db.models.Alarms
 import com.mioshek.theclock.db.models.AlarmsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,8 +58,26 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository) : View
 
     fun toggleAlarm(index: Int) {
         val previousState = _alarms[index]
-        _alarms[index] = previousState.copy(enabled = !previousState.enabled)
+        val newAlarm = previousState.copy(enabled = !previousState.enabled)
+        _alarms[index] = newAlarm
         //Send to system clock
+    }
+
+    fun saveDb(){
+        viewModelScope.launch {
+            for (alarm in _alarms){
+                alarmsRepository.upsert(
+                    Alarms(
+                        alarm.id,
+                        alarm.name,
+                        alarm.initialTime,
+                        encodeDaysOfWeek(alarm.daysOfWeek),
+                        alarm.sound,
+                        alarm.enabled
+                    )
+                )
+            }
+        }
     }
 
     fun upsert(alarm: AlarmUiState) {
