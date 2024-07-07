@@ -60,27 +60,41 @@ class TimeFormatter{
             }
         }
 
-        fun calculateTimeLeft(time: Int, daysOfWeek: Array<Boolean>): String {
+        fun calculateTimeLeft(timeInMinutes: Int, daysOfWeek: Array<Boolean>): String {
             val now = LocalTime.now()
             val currentDay = LocalDate.now()
-            val alarmTime = LocalTime.of(time / 60, time % 60)
+            val alarmTime = LocalTime.of(timeInMinutes / 60, timeInMinutes % 60)
 
-            return (0..6)
-                .map { (currentDay.dayOfWeek.value + it - 1) % 7 }
+            // Adjust daysOfWeek based on current day
+            val daysOfWeekAdjusted = (0..6)
+                .map { (currentDay.dayOfWeek.value - 1 + it) % 7 }
                 .filter { daysOfWeek[it] }
-                .minOfOrNull {
-                    val nextAlarm =
-                        currentDay.plusDays(if (it == 0 && now.isBefore(alarmTime)) 0 else it.toLong() + 1).atTime(alarmTime)
-                    ChronoUnit.MINUTES.between(currentDay.atTime(now), nextAlarm)
-                }
-                ?.let {
-                    val days = it / 60 / 24
-                    val hours = it / 60 % 24
-                    val hoursString = if (hours == 0L) "" else "$hours hours"
-                    val daysString = if (days == 0L) "" else "$days days"
 
-                    "$daysString $hoursString ${it % 60} minutes left"
-                } ?: "Once"
+            // Calculate the time left in minutes
+            val minutesLeft = daysOfWeekAdjusted.minOfOrNull {
+                val nextAlarmDay = currentDay.plusDays(
+                    if (it == 0 && now.isBefore(alarmTime)) 0
+                    else if (it == 0) 7
+                    else it.toLong()
+                )
+                val nextAlarm = nextAlarmDay.atTime(alarmTime)
+                ChronoUnit.MINUTES.between(currentDay.atTime(now), nextAlarm)
+            } ?: return "Once"
+
+            // Convert minutes to days, hours, and minutes
+            val totalDaysLeft = minutesLeft / 60 / 24
+            val hoursLeft = (minutesLeft / 60) % 24
+            val minutes = minutesLeft % 60
+
+            // Construct the output string
+            val daysString = if (totalDaysLeft > 0) "$totalDaysLeft day${if (totalDaysLeft > 1) "s" else ""}" else ""
+            val hoursString = if (hoursLeft > 0) "$hoursLeft hour${if (hoursLeft > 1) "s" else ""}" else ""
+            val minutesString = if (minutes > 0) "$minutes minute${if (minutes > 1) "s" else ""}" else ""
+
+            // Combine non-empty time parts with appropriate separators
+            return listOf(daysString, hoursString, minutesString)
+                .filter { it.isNotEmpty() }
+                .joinToString(" and ")
         }
     }
 }

@@ -52,9 +52,7 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository) : View
         }
     }
 
-    fun changeUiState(alarm: AlarmUiState) {
-        _alarm.value = alarm
-    }
+    fun changeUiState(alarm: AlarmUiState) { _alarm.value = alarm }
 
     fun toggleAlarm(index: Int) {
         val previousState = _alarms[index]

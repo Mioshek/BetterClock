@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -62,6 +63,7 @@ import com.mioshek.theclock.data.TimeFormatter
 import com.mioshek.theclock.db.AppViewModelProvider
 import com.mioshek.theclock.ui.theme.bodyFontFamily
 import com.mioshek.theclock.ui.theme.displayFontFamily
+import kotlinx.coroutines.delay
 
 @Composable
 fun AlarmsListView(
@@ -129,6 +131,13 @@ fun AlarmCard(
     modifier: Modifier = Modifier
 ){
     var extended by remember{mutableStateOf(false)}
+    var timeLeftString by remember { mutableStateOf("")}
+    LaunchedEffect(alarm) {
+        while (true) {
+            timeLeftString = TimeFormatter.calculateTimeLeft(alarm.initialTime, alarm.daysOfWeek)
+            delay(4000L)
+        }
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground.copy(0.1f)),
@@ -220,7 +229,7 @@ fun AlarmCard(
                     .fillMaxWidth()
             ){
                 Text(
-                    text = TimeFormatter.calculateTimeLeft(alarm.initialTime, alarm.daysOfWeek),
+                    text = timeLeftString,
                     fontSize = 12.sp,
                     fontFamily = bodyFontFamily,
                     fontWeight = FontWeight.Light
