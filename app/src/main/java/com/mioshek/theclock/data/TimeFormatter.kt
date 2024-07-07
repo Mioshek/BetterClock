@@ -1,5 +1,6 @@
 package com.mioshek.theclock.data
 
+import android.util.Log
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
@@ -41,6 +42,7 @@ class TimeFormatter{
          * @return array of string which includes hours, minutes, AM/PM if as24h is false
          */
         fun format(timeInMinutes: Int, as24h: Boolean): Array<String> {
+            val days = timeInMinutes / 60 / 24
             val hour = timeInMinutes / 60
             val minute = timeInMinutes % 60
             val formattedMinutes = if (minute > 9) minute else "0$minute"
@@ -66,12 +68,19 @@ class TimeFormatter{
             return (0..6)
                 .map { (currentDay.dayOfWeek.value + it - 1) % 7 }
                 .filter { daysOfWeek[it] }
-                .map {
-                    val nextAlarm = currentDay.plusDays(if (it == 0 && now.isBefore(alarmTime)) 0 else it.toLong()).atTime(alarmTime)
+                .minOfOrNull {
+                    val nextAlarm =
+                        currentDay.plusDays(if (it == 0 && now.isBefore(alarmTime)) 0 else it.toLong() + 1).atTime(alarmTime)
                     ChronoUnit.MINUTES.between(currentDay.atTime(now), nextAlarm)
                 }
-                .minOrNull()
-                ?.let { "${it / 60} hours ${it % 60} minutes left" } ?: "Once"
+                ?.let {
+                    val days = it / 60 / 24
+                    val hours = it / 60 % 24
+                    val hoursString = if (hours == 0L) "" else "$hours hours"
+                    val daysString = if (days == 0L) "" else "$days days"
+
+                    "$daysString $hoursString ${it % 60} minutes left"
+                } ?: "Once"
         }
     }
 }

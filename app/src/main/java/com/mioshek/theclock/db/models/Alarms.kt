@@ -3,9 +3,12 @@ package com.mioshek.theclock.db.models
 import androidx.annotation.WorkerThread
 import androidx.room.Dao
 import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
-import androidx.room.Upsert
+import androidx.room.Transaction
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 
@@ -35,8 +38,19 @@ data class Alarms(
 
 @Dao
 interface AlarmsDao{
-    @Upsert
-    suspend fun upsert(alarms: Alarms)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(alarm: Alarms): Long
+
+    @Update
+    suspend fun update(alarm: Alarms)
+
+    @Transaction
+    suspend fun upsert(alarm: Alarms) {
+        val id = insert(alarm)
+        if (id == -1L) {
+            update(alarm)
+        }
+    }
 
     @Query("DELETE FROM Alarms WHERE id = :id")
     suspend fun delete(id: Int)
@@ -57,8 +71,8 @@ interface AlarmsDao{
 
 
 class AlarmsRepository(private val alarmsDao: AlarmsDao) {
-    @WorkerThread suspend fun upsert(timer: Alarms) = alarmsDao.upsert(timer)
-
+    @WorkerThread suspend fun upsert(alarm: Alarms) = alarmsDao.upsert(alarm)
+    
     @WorkerThread suspend fun delete(id: Int) = alarmsDao.delete(id)
 
     fun getAllByIdDesc(): Flow<List<Alarms>> = alarmsDao.getAllByIdDesc()

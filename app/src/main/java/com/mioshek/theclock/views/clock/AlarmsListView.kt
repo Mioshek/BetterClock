@@ -159,7 +159,7 @@ fun AlarmCard(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        val text = TimeFormatter.format(alarm.initialTime,false)
+                        val text = TimeFormatter.format(alarm.initialTime, true)
                         Text(
                             text = text[0],
                             fontSize = 50.sp,
@@ -200,7 +200,16 @@ fun AlarmCard(
                 modifier = modifier.fillMaxWidth()
             ){
                 Box(modifier = modifier.fillMaxWidth(0.8f)){
-                    SelectedDaysView(alarm.daysOfWeek, onClick={})
+                    SelectedDaysView(
+                        alarm.daysOfWeek,
+                        onClick={
+                            if (extended){
+                                val startingSelectedDays = alarm.daysOfWeek.copyOf()
+                                startingSelectedDays[it] = !startingSelectedDays[it]
+                                alarmsViewModel.upsert(index, alarm.copy(daysOfWeek = startingSelectedDays))
+                            }
+                        }
+                    )
                 }
             }
 
@@ -219,14 +228,7 @@ fun AlarmCard(
             }
 
             if (extended){
-                Box(modifier = modifier.fillMaxWidth()){
-                    Text(
-                        text = "Settings",
-                        fontSize = 20.sp,
-                        fontFamily = bodyFontFamily,
-                        fontWeight = FontWeight.Light
-                    )
-                }
+                // Settings
             }
         }
     }
@@ -361,6 +363,7 @@ fun AlarmCreatorView(
                     modifier = modifier
                         .clickable {
                             alarmsViewModel.upsert(
+                                null,
                                 createdAlarmUiState.copy(
                                     initialTime = time,
                                     ringTime = time

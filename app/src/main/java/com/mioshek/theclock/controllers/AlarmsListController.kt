@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class AlarmUiState(
-    val id: Int = 0,
+    val id: Int? = null,
     val name: String? = null,
     val initialTime: Int = 0,
     val ringTime: Int = initialTime,
@@ -68,7 +68,7 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository) : View
             for (alarm in _alarms){
                 alarmsRepository.upsert(
                     Alarms(
-                        alarm.id,
+                        alarm.id!!,
                         alarm.name,
                         alarm.initialTime,
                         encodeDaysOfWeek(alarm.daysOfWeek),
@@ -80,11 +80,12 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository) : View
         }
     }
 
-    fun upsert(alarm: AlarmUiState) {
-        _alarms.add(alarm)
+    fun upsert(index: Int?, alarm: AlarmUiState) {
+        if (index != null) _alarms[index] = alarm else _alarms.add(alarm)
         viewModelScope.launch {
             alarmsRepository.upsert(
                 Alarms(
+                    id = alarm.id ?: 0,
                     name = alarm.name,
                     time = alarm.initialTime,
                     daysOfWeek = encodeDaysOfWeek(alarm.daysOfWeek),
@@ -99,7 +100,7 @@ class AlarmsListViewModel(private val alarmsRepository: AlarmsRepository) : View
         val deleted = _alarms[index]
         _alarms[index] = deleted.copy(visible = false)
         viewModelScope.launch {
-            alarmsRepository.delete(deleted.id)
+            alarmsRepository.delete(deleted.id!!)
         }
     }
 
