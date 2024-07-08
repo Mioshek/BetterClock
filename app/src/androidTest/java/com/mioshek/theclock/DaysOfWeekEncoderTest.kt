@@ -19,6 +19,14 @@ import org.junit.runner.RunWith
  */
 
 class a: AlarmsDao{
+    override suspend fun insert(alarm: Alarms): Long {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun update(alarm: Alarms) {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun upsert(alarms: Alarms) {
         TODO("Not yet implemented")
     }

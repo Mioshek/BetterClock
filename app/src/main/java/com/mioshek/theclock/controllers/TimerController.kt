@@ -1,23 +1,23 @@
 package com.mioshek.theclock.controllers
 
+import com.mioshek.theclock.services.NotificationsManager
 import android.app.Application
 import android.app.NotificationManager.IMPORTANCE_HIGH
-import android.media.RingtoneManager
+import android.content.Intent
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mioshek.theclock.NotificationsManager
 import com.mioshek.theclock.R
-import com.mioshek.theclock.TheUltimateClock
 import com.mioshek.theclock.data.ClockTime
 import com.mioshek.theclock.data.TimeFormatter.Companion.getClockTimeWithoutMillis
 import com.mioshek.theclock.data.TimeFormatter.Companion.getFullClockTime
 import com.mioshek.theclock.data.TimingState
 import com.mioshek.theclock.db.models.Timer
 import com.mioshek.theclock.db.models.TimerRepository
+import com.mioshek.theclock.services.RingtoneService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -48,13 +48,6 @@ class TimerListViewModel(
 ): ViewModel() {
     private val _sortBy = mutableStateOf(SortType.ID_ASC)
     private val _timers = mutableStateListOf<TimerUiState>()
-    private val notificationManager = NotificationsManager(
-        application = application,
-        CHANNEL_CODE = "Timer",
-        importance = IMPORTANCE_HIGH,
-        name = "TimerNotifications",
-        descriptionText = ""
-    )
 
     val timers: List<TimerUiState> = _timers
     init {importTimers()}
@@ -130,7 +123,7 @@ class TimerListViewModel(
                 }
             }
             if(timer.timerState == TimingState.RUNNING){
-                ringAlarm()
+                startRingtoneService()
                 updateTimer(index = uiIndex, TimerUiState(id = timer.id, initialTime = timer.initialTime))
             }
             if (timer.timerState == TimingState.OFF){
@@ -139,20 +132,9 @@ class TimerListViewModel(
         }
     }
 
-    private fun ringAlarm(){
-        val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        val ringtone = RingtoneManager.getRingtone(application.applicationContext, notification)
-        sendNotification()
-//        ringtone.play()
-    }
-
-    private fun sendNotification(){
-        notificationManager.createNotification(
-            1,
-            R.drawable.hourglass,
-            "Timer",
-            "Time's Up!"
-        )
+    private fun startRingtoneService(){
+        val intent = Intent(application.applicationContext, RingtoneService::class.java)
+        ContextCompat.startForegroundService(application.applicationContext, intent)
     }
 
     fun updateTimer(index: Int, timer: TimerUiState){

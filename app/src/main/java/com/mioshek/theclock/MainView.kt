@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.mioshek.theclock.views.ClockNavigation
 import com.mioshek.theclock.views.bars.BottomNavigationBar
-import com.mioshek.theclock.views.bars.BottomNavigationItem
 
 @Composable
 fun MainView(modifier: Modifier = Modifier) {
