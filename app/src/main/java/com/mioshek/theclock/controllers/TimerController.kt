@@ -1,10 +1,17 @@
 package com.mioshek.theclock.controllers
 
+import android.app.Application
+import android.app.NotificationManager.IMPORTANCE_HIGH
+import android.media.RingtoneManager
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mioshek.theclock.NotificationsManager
+import com.mioshek.theclock.R
+import com.mioshek.theclock.TheUltimateClock
 import com.mioshek.theclock.data.ClockTime
 import com.mioshek.theclock.data.TimeFormatter.Companion.getClockTimeWithoutMillis
 import com.mioshek.theclock.data.TimeFormatter.Companion.getFullClockTime
@@ -36,10 +43,19 @@ enum class SortType{
 
 
 class TimerListViewModel(
-    private val repository: TimerRepository
+    private val repository: TimerRepository,
+    private val application: Application,
 ): ViewModel() {
     private val _sortBy = mutableStateOf(SortType.ID_ASC)
     private val _timers = mutableStateListOf<TimerUiState>()
+    private val notificationManager = NotificationsManager(
+        application = application,
+        CHANNEL_CODE = "Timer",
+        importance = IMPORTANCE_HIGH,
+        name = "TimerNotifications",
+        descriptionText = ""
+    )
+
     val timers: List<TimerUiState> = _timers
     init {importTimers()}
 
@@ -114,14 +130,29 @@ class TimerListViewModel(
                 }
             }
             if(timer.timerState == TimingState.RUNNING){
-                Log.d("Notification", "AlarmFinished")
+                ringAlarm()
                 updateTimer(index = uiIndex, TimerUiState(id = timer.id, initialTime = timer.initialTime))
-                // Notification
             }
             if (timer.timerState == TimingState.OFF){
                 updateTimer(index = uiIndex, TimerUiState(id = timer.id, initialTime = timer.initialTime))
             }
         }
+    }
+
+    private fun ringAlarm(){
+        val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        val ringtone = RingtoneManager.getRingtone(application.applicationContext, notification)
+        sendNotification()
+//        ringtone.play()
+    }
+
+    private fun sendNotification(){
+        notificationManager.createNotification(
+            1,
+            R.drawable.hourglass,
+            "Timer",
+            "Time's Up!"
+        )
     }
 
     fun updateTimer(index: Int, timer: TimerUiState){

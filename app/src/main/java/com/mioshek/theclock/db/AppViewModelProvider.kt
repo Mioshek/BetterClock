@@ -13,6 +13,7 @@ object AppViewModelProvider {
         initializer {
             TimerListViewModel(
                 theUltimateClockApplication().container.timerRepository,
+                theUltimateClockApplication()
             )
         }
 
