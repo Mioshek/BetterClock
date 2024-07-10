@@ -18,7 +18,10 @@ object AppViewModelProvider {
         }
 
         initializer {
-            AlarmsListViewModel(theUltimateClockApplication().container.alarmsRepository)
+            AlarmsListViewModel(
+                theUltimateClockApplication().container.alarmsRepository,
+                theUltimateClockApplication()
+            )
         }
     }
 }

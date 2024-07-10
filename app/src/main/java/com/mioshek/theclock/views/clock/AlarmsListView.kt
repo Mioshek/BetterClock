@@ -1,28 +1,24 @@
 package com.mioshek.theclock.views.clock
 
-import android.graphics.Typeface
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
@@ -48,17 +44,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mioshek.mioshekassets.SliderWheelNumberPicker
-import com.mioshek.theclock.controllers.AlarmsListViewModel
+import com.mioshek.theclock.R
 import com.mioshek.theclock.controllers.AlarmUiState
+import com.mioshek.theclock.controllers.AlarmsListViewModel
 import com.mioshek.theclock.data.TimeFormatter
 import com.mioshek.theclock.db.AppViewModelProvider
 import com.mioshek.theclock.ui.theme.bodyFontFamily
@@ -72,7 +68,15 @@ fun AlarmsListView(
 ){
     val alarms = alarmsListViewModel.alarms
     var showCreatingWindow by remember {mutableStateOf(false)}
+    var deletionConfirmed by remember{ mutableStateOf(false)}
     val borderRadius = if (showCreatingWindow) 8.dp else 0.dp
+
+    if (deletionConfirmed) {
+        deletionConfirmed = false
+        alarms.forEachIndexed{ index, alarm ->
+            if (alarm.isSelected) alarmsListViewModel.deleteAlarm(index)
+        }
+    }
 
     Box(
         modifier = modifier
@@ -82,6 +86,12 @@ fun AlarmsListView(
         LazyColumn(
             modifier = modifier.padding(top = 40.dp)
         ) {
+            if (alarmsListViewModel.inSelectionMode.value){
+                item {
+                    DeleteBarView({deletionConfirmed = true})
+                }
+            }
+
             itemsIndexed(alarms){index, value ->
                 AlarmCard(index = index, alarm = value, alarmsListViewModel)
             }
@@ -123,6 +133,7 @@ fun AlarmsListView(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AlarmCard(
     index: Int,
@@ -143,101 +154,119 @@ fun AlarmCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground.copy(0.1f)),
         modifier = modifier
             .padding(10.dp)
-            .clickable {
-                extended = !extended
-            }
-    ){
-        Column(
-            modifier = modifier.animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
+            .combinedClickable(
+                onClick = {
+                    if (alarmsViewModel.inSelectionMode.value) {
+                        alarmsViewModel.upsert(index, alarm.copy(isSelected = !alarm.isSelected))
+                    } else extended = !extended
+                },
+                onLongClick = {
+                    alarmsViewModel.changeSelectionState()
+                }
             )
-        ) {
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(start = 10.dp, end = 10.dp)
-            ){
-                Box(
-                    contentAlignment = Alignment.CenterStart,
+    ){
+        Box(modifier = modifier.fillMaxSize()){
+            Box(modifier = modifier.padding(5.dp)){
+                if (alarmsViewModel.inSelectionMode.value && alarm.isSelected){
+                    Icon(painter = painterResource(id = R.drawable.checkbox_selected), contentDescription = "Selected")
+                }
+                else if (alarmsViewModel.inSelectionMode.value){
+                    Icon(painter = painterResource(id = R.drawable.checkbox_unselected), contentDescription = "Unselected")
+                }
+            }
+
+            Column(
+                modifier = modifier.animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                )
+            ) {
+                Row (
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .padding(start = 10.dp, end = 10.dp)
                 ){
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        val text = TimeFormatter.format(alarm.initialTime, true)
-                        Text(
-                            text = text[0],
-                            fontSize = 50.sp,
-                            fontFamily = displayFontFamily,
-                            fontWeight = FontWeight.W600,
-                        )
-                        Text(
-                            text = text[1],
-                            fontSize = 50.sp,
-                            fontFamily = displayFontFamily,
-                            fontWeight = FontWeight.W600,
-                            modifier = modifier.padding(end = 5.dp)
-                        )
-                        if (text.size == 3){
+                    Box(
+                        contentAlignment = Alignment.CenterStart,
+                    ){
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            val text = TimeFormatter.format(alarm.initialTime, true)
                             Text(
-                                text = text[2],
-                                fontSize = 25.sp,
+                                text = text[0],
+                                fontSize = 50.sp,
                                 fontFamily = displayFontFamily,
+                                fontWeight = FontWeight.W600,
                             )
+                            Text(
+                                text = text[1],
+                                fontSize = 50.sp,
+                                fontFamily = displayFontFamily,
+                                fontWeight = FontWeight.W600,
+                                modifier = modifier.padding(end = 5.dp)
+                            )
+                            if (text.size == 3){
+                                Text(
+                                    text = text[2],
+                                    fontSize = 25.sp,
+                                    fontFamily = displayFontFamily,
+                                )
+                            }
                         }
+                    }
+
+                    Box(
+                    ) {
+                        Switch(
+                            checked = alarm.enabled,
+                            onCheckedChange = {
+                                alarmsViewModel.toggleAlarm(index)
+                            },
+                            modifier = modifier
+                        )
                     }
                 }
 
                 Box(
-                ) {
-                    Switch(
-                        checked = alarm.enabled,
-                        onCheckedChange = {
-                            alarmsViewModel.toggleAlarm(index)
-                        },
-                        modifier = modifier
-                    )
-                }
-            }
-
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = modifier.fillMaxWidth()
-            ){
-                Box(modifier = modifier.fillMaxWidth(0.8f)){
-                    SelectedDaysView(
-                        alarm.daysOfWeek,
-                        onClick={
-                            if (extended){
-                                val startingSelectedDays = alarm.daysOfWeek.copyOf()
-                                startingSelectedDays[it] = !startingSelectedDays[it]
-                                alarmsViewModel.upsert(index, alarm.copy(daysOfWeek = startingSelectedDays))
+                    contentAlignment = Alignment.Center,
+                    modifier = modifier.fillMaxWidth()
+                ){
+                    Box(modifier = modifier.fillMaxWidth(0.8f)){
+                        SelectedDaysView(
+                            alarm.daysOfWeek,
+                            onClick={
+                                if (extended){
+                                    val startingSelectedDays = alarm.daysOfWeek.copyOf()
+                                    startingSelectedDays[it] = !startingSelectedDays[it]
+                                    alarmsViewModel.upsert(index, alarm.copy(daysOfWeek = startingSelectedDays))
+                                }
                             }
-                        }
+                        )
+                    }
+                }
+
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = modifier
+                        .padding(bottom = 5.dp, top = 5.dp)
+                        .fillMaxWidth()
+                ){
+                    Text(
+                        text = timeLeftString,
+                        fontSize = 12.sp,
+                        fontFamily = bodyFontFamily,
+                        fontWeight = FontWeight.Light
                     )
                 }
-            }
 
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = modifier
-                    .padding(bottom = 5.dp, top = 5.dp)
-                    .fillMaxWidth()
-            ){
-                Text(
-                    text = timeLeftString,
-                    fontSize = 12.sp,
-                    fontFamily = bodyFontFamily,
-                    fontWeight = FontWeight.Light
-                )
-            }
-
-            if (extended){
-                // Settings
+                if (extended){
+                    // Settings
+                }
             }
         }
     }
@@ -396,7 +425,6 @@ fun SelectedDaysView(
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ){
-    val padding = if(isFormView) 10.dp else 0.dp
     val fontSize = if(isFormView) 18.sp else 14.sp
 
     val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
@@ -419,12 +447,32 @@ fun SelectedDaysView(
                 Text(
                     text = value,
                     color = color,
-                    modifier = modifier.padding(padding),
                     textDecoration = if(selectedDays[index]) TextDecoration.Underline else TextDecoration.None,
                     fontFamily = bodyFontFamily,
                     fontSize = fontSize,
                     fontWeight = FontWeight.W900
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun DeleteBarView(onClick: () -> Unit, modifier: Modifier = Modifier){
+    Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxWidth()){
+        Box(
+            modifier = modifier
+                .padding(8.dp)
+                .clickable {
+                    onClick()
+                }
+        ){
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = modifier
+            ) {
+                Icon(painter = painterResource(id = R.drawable.delete), contentDescription = "Delete Selected Alarms")
+                Text(text = "Delete")
             }
         }
     }

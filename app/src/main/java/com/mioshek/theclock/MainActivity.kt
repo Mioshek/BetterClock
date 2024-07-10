@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.mioshek.theclock.controllers.AlarmsListViewModel
 import com.mioshek.theclock.db.AppDatabase
 import com.mioshek.theclock.ui.theme.TheClockTheme
 
@@ -56,6 +57,5 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        AppDatabase.closeDb()
     }
 }

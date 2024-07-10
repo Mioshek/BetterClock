@@ -322,7 +322,7 @@ fun TimerIcon(
         painter = painterResource(icon),
         contentDescription = description,
         modifier = Modifier
-            .size(40.dp)
+            .size(60.dp)
             .padding(5.dp)
             .clickable {
                 val previousTimerState = timer.timerState

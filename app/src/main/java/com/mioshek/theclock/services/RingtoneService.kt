@@ -45,7 +45,7 @@ class RingtoneService : Service() {
         startForeground(1, notificationManager.builder.notification)
 
         // Schedule the stop operation after 1 minute (60,000 milliseconds)
-        stopHandler.postDelayed(stopRunnable, 5000) // 60 seconds = 60,000 milliseconds
+        stopHandler.postDelayed(stopRunnable, 20000) // 60 seconds = 60,000 milliseconds
 
         return START_NOT_STICKY
     }

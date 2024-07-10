@@ -52,6 +52,14 @@
 
         <!-- Receiver -->
         <receiver android:name=".ClockReceiver" />
+
+        <receiver android:name=".receivers.AlarmReceiver"
+            android:enabled="false"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"></action>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

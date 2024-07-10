@@ -13,7 +13,6 @@ data class Timer(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val time: Int,
-    val dateCreated: Long
 )
 
 @Dao
