@@ -1,12 +1,15 @@
 package com.mioshek.theclock.services
 
+import android.Manifest
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.os.Handler
 import android.os.IBinder
+import androidx.core.app.ActivityCompat
 import com.mioshek.theclock.R
 
 class RingtoneService : Service() {
@@ -20,14 +23,13 @@ class RingtoneService : Service() {
         val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
         ringtone = RingtoneManager.getRingtone(this, uri)
         notificationManager = NotificationsManager(
-            application = application,
+            this.application,
             CHANNEL_CODE = "Timer",
             importance = NotificationManager.IMPORTANCE_HIGH,
             name = "TimerNotifications",
             descriptionText = ""
         )
 
-        // Initialize Handler and Runnable for stopping the ringtone after 1 minute
         stopHandler = Handler()
         stopRunnable = Runnable {
             stopRingtone()
@@ -41,11 +43,15 @@ class RingtoneService : Service() {
             "Timer",
             "Time's Up!",
         )
-        ringtone.play()
         startForeground(1, notificationManager.builder.notification)
 
+        if (ActivityCompat.checkSelfPermission(
+                application.applicationContext,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) ringtone.play()
         // Schedule the stop operation after 1 minute (60,000 milliseconds)
-        stopHandler.postDelayed(stopRunnable, 20000) // 60 seconds = 60,000 milliseconds
+        stopHandler.postDelayed(stopRunnable, 20000)
 
         return START_NOT_STICKY
     }
@@ -68,7 +74,6 @@ class RingtoneService : Service() {
         if (ringtone.isPlaying) {
             ringtone.stop()
         }
-        // Stop the service after stopping the ringtone
         stopSelf()
     }
 }

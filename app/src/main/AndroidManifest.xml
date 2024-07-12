@@ -51,7 +51,7 @@
             android:foregroundServiceType="mediaPlayback" />
 
         <!-- Receiver -->
-        <receiver android:name=".ClockReceiver" />
+        <receiver android:name=".receivers.ClockReceiver" />
 
         <receiver android:name=".receivers.AlarmReceiver"
             android:enabled="false"

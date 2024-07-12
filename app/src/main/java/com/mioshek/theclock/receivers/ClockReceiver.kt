@@ -1,4 +1,4 @@
-package com.mioshek.theclock
+package com.mioshek.theclock.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context

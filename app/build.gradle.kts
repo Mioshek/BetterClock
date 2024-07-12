@@ -10,8 +10,9 @@ android {
 
     defaultConfig {
         applicationId = "com.mioshek.theclock"
-        minSdk = 28
+
         targetSdk = 34
+        minSdk = 28
         versionCode = 1
         versionName = "1.0"
 
@@ -24,7 +25,7 @@ android {
     buildTypes {
         release {
             isDebuggable = false
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

@@ -1,19 +1,15 @@
 package com.mioshek.theclock.controllers
 
-import com.mioshek.theclock.services.NotificationsManager
+import android.app.Activity
 import android.app.Application
-import android.app.NotificationManager.IMPORTANCE_HIGH
-import android.app.Service
 import android.content.Intent
-import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.core.app.NotificationCompat.ServiceNotificationBehavior
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mioshek.theclock.R
 import com.mioshek.theclock.data.ClockTime
+import com.mioshek.theclock.data.Storage
 import com.mioshek.theclock.data.TimeFormatter.Companion.getClockTimeWithoutMillis
 import com.mioshek.theclock.data.TimeFormatter.Companion.getFullClockTime
 import com.mioshek.theclock.data.TimingState
@@ -52,12 +48,13 @@ class TimerListViewModel(
     private val _timers = mutableStateListOf<TimerUiState>()
 
     val timers: List<TimerUiState> = _timers
-    init {importTimers()}
+    init {
+        importTimers()
+    }
 
 
     fun createTimer(timer: TimerUiState){
-        val index = timers.size
-        val newTimer = TimerUiState(id = index, initialTime = timer.initialTime)
+        val newTimer = TimerUiState(initialTime = timer.initialTime)
         _timers.add(newTimer)
         viewModelScope.launch {
             repository.upsert(Timer(time = (timeToMillis(newTimer.initialTime)/1000).toInt()))
@@ -92,7 +89,7 @@ class TimerListViewModel(
         }
     }
 
-    fun runTimer(uiIndex: Int) {
+    fun runTimer(uiIndex: Int, activity: Activity?) {
         // assuming the initial timer state is set from the UI
         // we calculate the future - the millis timer will finish
         var timer = _timers[uiIndex]
@@ -109,7 +106,7 @@ class TimerListViewModel(
                 val remainingTime = future - currentTime
                 time = getFullClockTime(remainingTime)
                 progressBarStatus = remainingTime.toFloat() / timerTime.toFloat()
-                updateTimer(uiIndex, timer.copy(updatableTime = time, remainingProgress = progressBarStatus))
+                updateRunningTimer(uiIndex, timer.copy(updatableTime = time, remainingProgress = progressBarStatus))
                 delay(cycleTimeMs) // 60FPS
                 while (timer.timerState == TimingState.PAUSED){
                     timer = _timers[uiIndex]
@@ -118,21 +115,23 @@ class TimerListViewModel(
                 }
             }
             if(timer.timerState == TimingState.RUNNING){
-                startRingtoneService()
-//                while (timer.timerState != TimingState.OFF){
-//                    Log.d("TimingState", "${timer.timerState}")
-//                }
+                if (activity != null) startRingtoneService(activity)
+                while (timer.timerState != TimingState.OFF){
+                    timer = _timers[uiIndex]
+                    delay(250)
+                }
                 stopRingtoneService()
-                updateTimer(index = uiIndex, TimerUiState(id = timer.id, initialTime = timer.initialTime))
+                updateRunningTimer(index = uiIndex, TimerUiState(id = timer.id, initialTime = timer.initialTime))
             }
             if (timer.timerState == TimingState.OFF){
-                updateTimer(index = uiIndex, TimerUiState(id = timer.id, initialTime = timer.initialTime))
+                updateRunningTimer(index = uiIndex, TimerUiState(id = timer.id, initialTime = timer.initialTime))
             }
         }
     }
 
-    private fun startRingtoneService(){
+    private fun startRingtoneService(activity: Activity){
         val intent = Intent(application.applicationContext, RingtoneService::class.java)
+        Storage.put("Activity", activity)
         ContextCompat.startForegroundService(application.applicationContext, intent)
     }
 
@@ -141,22 +140,18 @@ class TimerListViewModel(
         application.applicationContext.stopService(intent)
     }
 
-    fun updateTimer(index: Int, timer: TimerUiState){
+    fun updateRunningTimer(index: Int, timer: TimerUiState){
         _timers[index] = timer
-        viewModelScope.launch {
-            repository.upsert(
-                Timer(
-                    id = timer.id,
-                    time = (timeToMillis(timer.initialTime)/1000).toInt(),
-                )
-            )
-        }
+    }
+
+    fun updateDbTimer(){
+
     }
 
     fun resumeTimer(uiIndex: Int){
         val timer = _timers[uiIndex]
         val newTimer = timer.copy(timerState = TimingState.RUNNING)
-        updateTimer(uiIndex, newTimer)
+        updateRunningTimer(uiIndex, newTimer)
     }
 
     private fun timeToMillis(time: ClockTime): Long {

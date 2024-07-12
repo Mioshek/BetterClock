@@ -5,7 +5,6 @@ import android.app.Application
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import com.mioshek.theclock.receivers.AlarmReceiver
 import java.time.LocalDate
 import java.util.Calendar
@@ -53,7 +52,6 @@ class AlarmService(application: Application) {
                 calendar.timeInMillis,
                 alarmIntent
             )
-            Log.d("Time", calendar.time.toString())
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.mioshek.theclock.db.models
 
+import android.util.Log
 import androidx.annotation.WorkerThread
 import androidx.room.Dao
 import androidx.room.Entity
@@ -39,7 +40,9 @@ interface TimerDao{
 
 
 class TimerRepository(private val timerDao: TimerDao) {
-    @WorkerThread suspend fun upsert(timer: Timer) = timerDao.upsert(timer)
+    @WorkerThread suspend fun upsert(timer: Timer) {
+        timerDao.upsert(timer)
+    }
 
     @WorkerThread suspend fun delete(id: Int) = timerDao.delete(id)
 

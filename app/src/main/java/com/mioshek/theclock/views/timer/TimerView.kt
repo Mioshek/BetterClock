@@ -1,5 +1,6 @@
 package com.mioshek.theclock.views.timer
 
+import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,7 +28,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,8 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -318,6 +318,8 @@ fun TimerIcon(
     timer: TimerUiState,
     timingState: TimingState,
 ){
+    val activity = LocalContext.current as? Activity
+
     Icon(
         painter = painterResource(icon),
         contentDescription = description,
@@ -326,14 +328,14 @@ fun TimerIcon(
             .padding(5.dp)
             .clickable {
                 val previousTimerState = timer.timerState
-                timerViewModel.updateTimer(
+                timerViewModel.updateRunningTimer(
                     index,
                     timer.copy(timerState = timingState)
                 )
 
                 when (timingState) {
                     TimingState.OFF -> {
-                        timerViewModel.updateTimer(
+                        timerViewModel.updateRunningTimer(
                             index,
                             TimerUiState(id = timer.id, initialTime = timer.initialTime)
                         )
@@ -343,9 +345,10 @@ fun TimerIcon(
                         if (previousTimerState == TimingState.PAUSED) timerViewModel.resumeTimer(
                             index
                         )
-                        else timerViewModel.runTimer(index)
+                        else {
+                            timerViewModel.runTimer(index, activity)
+                        }
                     }
-
                     TimingState.PAUSED -> {}
                 }
             }
