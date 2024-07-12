@@ -3,8 +3,10 @@ package com.mioshek.theclock.data
 import android.util.Log
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
+import kotlin.math.min
 
 
 enum class TimingState{
@@ -20,7 +22,35 @@ data class ClockTime(
     val seconds: Long = 0,
     val minutes: Long = 0,
     val hours: Long = 0,
-)
+) {
+    private fun toTotalMilliseconds(): Long {
+        return milliseconds +
+                seconds * 1000 +
+                minutes * 60 * 1000 +
+                hours * 60 * 60 * 1000
+    }
+
+    // Subtraction method
+    operator fun minus(other: ClockTime): ClockTime {
+        val resultInMilliseconds = this.toTotalMilliseconds() - other.toTotalMilliseconds()
+
+        // Handle negative result (assuming return zero for negative results)
+        val nonNegativeResult = if (resultInMilliseconds < 0) 0 else resultInMilliseconds
+
+        // Convert the result back to ClockTime
+        val resultHours = nonNegativeResult / (60 * 60 * 1000)
+        val resultMinutes = (nonNegativeResult % (60 * 60 * 1000)) / (60 * 1000)
+        val resultSeconds = (nonNegativeResult % (60 * 1000)) / 1000
+        val resultMilliseconds = nonNegativeResult % 1000
+
+        return ClockTime(
+            milliseconds = resultMilliseconds,
+            seconds = resultSeconds,
+            minutes = resultMinutes,
+            hours = resultHours
+        )
+    }
+}
 
 class TimeFormatter{
     companion object{
@@ -43,7 +73,6 @@ class TimeFormatter{
          * @return array of string which includes hours, minutes, AM/PM if as24h is false
          */
         fun format(timeInMinutes: Int, as24h: Boolean): Array<String> {
-            val days = timeInMinutes / 60 / 24
             val hour = timeInMinutes / 60
             val minute = timeInMinutes % 60
             val formattedMinutes = if (minute > 9) minute else "0$minute"
@@ -62,40 +91,32 @@ class TimeFormatter{
         }
 
         fun calculateTimeLeft(timeInMinutes: Int, daysOfWeek: Array<Boolean>): String {
-            val now = LocalTime.now()
-            val currentDay = LocalDate.now()
-            val alarmTime = LocalTime.of(timeInMinutes / 60, timeInMinutes % 60)
+            val now = LocalDateTime.now()
+            val currentDayOfWeek = now.dayOfWeek.value
+            val alarmTime = now.withHour(timeInMinutes / 60).withMinute(timeInMinutes % 60)
+            var minimumMinutes = Int.MAX_VALUE
 
-            // Adjust daysOfWeek based on current day
-            val daysOfWeekAdjusted = (0..6)
-                .map { (currentDay.dayOfWeek.value - 1 + it) % 7 }
-                .filter { daysOfWeek[it] }
-
-            // Calculate the time left in minutes
-            val minutesLeft = daysOfWeekAdjusted.minOfOrNull {
-                val nextAlarmDay = currentDay.plusDays(
-                    if (it == 0 && now.isBefore(alarmTime)) 0
-                    else if (it == 0) 7
-                    else it.toLong()
-                )
-                val nextAlarm = nextAlarmDay.atTime(alarmTime)
-                ChronoUnit.MINUTES.between(currentDay.atTime(now), nextAlarm)
-            } ?: return "Once"
-
-            // Convert minutes to days, hours, and minutes
-            val totalDaysLeft = minutesLeft / 60 / 24
-            val hoursLeft = (minutesLeft / 60) % 24
-            val minutes = minutesLeft % 60
-
-            // Construct the output string
-            val daysString = if (totalDaysLeft > 0) "$totalDaysLeft day${if (totalDaysLeft > 1) "s" else ""}" else ""
-            val hoursString = if (hoursLeft > 0) "$hoursLeft hour${if (hoursLeft > 1) "s" else ""}" else ""
-            val minutesString = if (minutes > 0) "$minutes minute${if (minutes > 1) "s" else ""}" else ""
-
-            // Combine non-empty time parts with appropriate separators
-            return listOf(daysString, hoursString, minutesString)
-                .filter { it.isNotEmpty() }
-                .joinToString(" and ")
+            if (daysOfWeek.any { it }) {
+                daysOfWeek.forEachIndexed { index, day ->
+                    if (day) {
+                        val additionalDays = if (currentDayOfWeek < index + 1) index + 1 - currentDayOfWeek else 7 - (currentDayOfWeek - index - 1)
+                        val dayToCalculate = alarmTime.plusDays(additionalDays.toLong())
+                        val minutes = ChronoUnit.MINUTES.between(now, dayToCalculate).toInt()
+                        if (minimumMinutes > minutes) minimumMinutes = minutes
+                    }
+                }
+                val days = minimumMinutes / (24 * 60)
+                val hours = (minimumMinutes % (24 * 60)) / 60
+                val minutes = minimumMinutes % 60
+                return if (days > 0) "$days days $hours hours and $minutes minutes"
+                else if (hours > 0) "$hours hours and $minutes minutes"
+                else "$minutes minutes"
+            } else {
+                val minutesUntilAlarm = if (now.isBefore(alarmTime)) ChronoUnit.MINUTES.between(now, alarmTime) else ChronoUnit.MINUTES.between(now, alarmTime.plusDays(1))
+                val hours = (minutesUntilAlarm / 60).toInt()
+                val minutes = (minutesUntilAlarm % 60).toInt()
+                return "$hours hours and $minutes minutes"
+            }
         }
     }
 }

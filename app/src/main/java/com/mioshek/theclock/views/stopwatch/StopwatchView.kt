@@ -263,8 +263,15 @@ fun StagesView(
                         text = if (i < 9) "0${i+1}" else "${i+1}",
                         fontFamily = displayFontFamily
                     )
+                    val stageIndex = stopwatchUiState.stages.indexOf(stage)
+                    val stageTime = if (stageIndex == 0){
+                        getStringTime(stage, 0, 4)
+                    }
+                    else{
+                        getStringTime(stage - stopwatchUiState.stages[stageIndex - 1], 0, 4)
+                    }
                     Text(
-                        text = "Stage Time",
+                        text = stageTime,
                         fontFamily = displayFontFamily
                     )
                     Text(

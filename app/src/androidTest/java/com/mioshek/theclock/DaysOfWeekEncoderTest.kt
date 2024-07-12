@@ -1,15 +1,14 @@
 package com.mioshek.theclock
 
+import android.app.Application
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.mioshek.theclock.controllers.AlarmsListViewModel
-import com.mioshek.theclock.db.AppDatabase
 import com.mioshek.theclock.db.models.Alarms
 import com.mioshek.theclock.db.models.AlarmsDao
 import com.mioshek.theclock.db.models.AlarmsRepository
 import kotlinx.coroutines.flow.Flow
-import org.junit.Test
-
 import org.junit.Assert.*
+import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
@@ -53,8 +52,7 @@ class a: AlarmsDao{
 }
 @RunWith(AndroidJUnit4::class)
 class DaysOfWeekTest {
-    val alarmsListViewModel = AlarmsListViewModel(AlarmsRepository(alarmsDao = a())
-    )
+    val alarmsListViewModel = AlarmsListViewModel(AlarmsRepository(alarmsDao = a() ),Application())
 
     //Encode
     @Test

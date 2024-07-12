@@ -1,6 +1,5 @@
 package com.mioshek.theclock.controllers
 
-import android.Manifest
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
@@ -16,7 +15,6 @@ import com.mioshek.theclock.data.TimeFormatter.Companion.getFullClockTime
 import com.mioshek.theclock.data.TimingState
 import com.mioshek.theclock.db.models.Timer
 import com.mioshek.theclock.db.models.TimerRepository
-import com.mioshek.theclock.extensions.permissions.PermissionManager
 import com.mioshek.theclock.services.RingtoneService
 import com.mioshek.theclock.services.ServiceManager
 import kotlinx.coroutines.CoroutineScope
