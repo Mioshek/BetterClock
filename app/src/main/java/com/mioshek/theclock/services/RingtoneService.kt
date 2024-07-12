@@ -11,6 +11,7 @@ import android.os.Handler
 import android.os.IBinder
 import androidx.core.app.ActivityCompat
 import com.mioshek.theclock.R
+import com.mioshek.theclock.extensions.permissions.RuntimePermissions
 
 class RingtoneService : Service() {
     private lateinit var ringtone: Ringtone
@@ -47,7 +48,7 @@ class RingtoneService : Service() {
 
         if (ActivityCompat.checkSelfPermission(
                 application.applicationContext,
-                Manifest.permission.POST_NOTIFICATIONS
+                RuntimePermissions.NOTIFICATIONS.permission
             ) == PackageManager.PERMISSION_GRANTED
         ) ringtone.play()
         // Schedule the stop operation after 1 minute (60,000 milliseconds)

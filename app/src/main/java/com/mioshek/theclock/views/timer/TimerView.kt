@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -151,15 +152,15 @@ fun TimerView(
                     )
 
                     Row(modifier = modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight()
-                            .padding(10.dp),
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .padding(10.dp),
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Box(modifier = Modifier
                             .padding(10.dp)
-                            .clickable{pickingTime = false},
+                            .clickable { pickingTime = false },
                             contentAlignment = Alignment.CenterEnd
                         ){
                             Text(
@@ -178,15 +179,15 @@ fun TimerView(
                         Spacer(modifier = modifier.padding(10.dp))
 
                         Box(modifier = Modifier
-                                .padding(10.dp)
-                                .clickable {
-                                    if (pickedTime.initialTime == ClockTime()) {
-                                        showInvalidArgumentAllert = true
-                                    } else {
-                                        timerViewModel.createTimer(pickedTime)
-                                        pickingTime = false
-                                    }
-                                },
+                            .padding(10.dp)
+                            .clickable {
+                                if (pickedTime.initialTime == ClockTime()) {
+                                    showInvalidArgumentAllert = true
+                                } else {
+                                    timerViewModel.createTimer(pickedTime)
+                                    pickingTime = false
+                                }
+                            },
                             contentAlignment = Alignment.CenterStart
                         ){
                             Text(
@@ -258,6 +259,10 @@ fun SingleTimerView(
 
                     TimerIcon(index, R.drawable.play, "Play", timerViewModel, timer, TimingState.RUNNING)
                 }
+
+                TimingState.RINGING ->{
+                    TimerIcon(index, R.drawable.music_off, "Stop Ringing", timerViewModel, timer, TimingState.OFF, 45.dp)
+                }
             }
 
             Column(
@@ -317,14 +322,15 @@ fun TimerIcon(
     timerViewModel: TimerListViewModel,
     timer: TimerUiState,
     timingState: TimingState,
-){
+    iconSize: Dp = 60.dp,
+    ){
     val activity = LocalContext.current as? Activity
 
     Icon(
         painter = painterResource(icon),
         contentDescription = description,
         modifier = Modifier
-            .size(60.dp)
+            .size(iconSize)
             .padding(5.dp)
             .clickable {
                 val previousTimerState = timer.timerState
@@ -349,6 +355,7 @@ fun TimerIcon(
                             timerViewModel.runTimer(index, activity)
                         }
                     }
+                    TimingState.RINGING -> {}
                     TimingState.PAUSED -> {}
                 }
             }

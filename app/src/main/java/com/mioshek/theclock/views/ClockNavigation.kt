@@ -28,6 +28,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.mioshek.theclock.extensions.permissions.NotificationsAlertDialog
 import com.mioshek.theclock.extensions.permissions.PermissionManager
 import com.mioshek.theclock.extensions.permissions.RuntimePermissions
 import com.mioshek.theclock.services.NotificationsManager
@@ -124,10 +125,12 @@ class ClockNavigation {
             var showDialog by remember{ mutableStateOf(true)}
             if (PermissionManager.checkPermission(
                     context,
-                    Manifest.permission.POST_NOTIFICATIONS
+                    RuntimePermissions.NOTIFICATIONS.permission
                 ) && showDialog
             ) {
                 NotificationsAlertDialog(
+                    title = "Permissions Required",
+                    description = "Notifications must be enabled for the app to function properly",
                     onCancel = {
                         navController.popBackStack()
                         navController.navigate(BottomNavigationItem.Stopwatch.route)
@@ -136,38 +139,11 @@ class ClockNavigation {
                         onCancel()
                     },
                     onOk = {
-                        PermissionManager.requestPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
+                        PermissionManager.requestPermission(activity, RuntimePermissions.NOTIFICATIONS.permission)
                         showDialog = false
                     }
                 )
             }
         }
     }
-}
-
-@Composable
-fun NotificationsAlertDialog(onCancel: () -> Unit, onOk: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onCancel,
-        title = {
-            Text(text = "Notifications Required")
-        },
-        text = {
-            Text(text = "Notifications must be enabled for the app to function properly.")
-        },
-        dismissButton = {
-            Button(
-                onClick = onCancel
-            ) {
-                Text(text = "Cancel")
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onOk
-            ) {
-                Text(text = "OK")
-            }
-        }
-    )
 }

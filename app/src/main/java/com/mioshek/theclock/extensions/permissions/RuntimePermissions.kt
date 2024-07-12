@@ -3,6 +3,7 @@ package com.mioshek.theclock.extensions.permissions
 import android.Manifest
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.READ_MEDIA_AUDIO
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -11,13 +12,17 @@ import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 
 enum class RuntimePermissions(val permission: String) {
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU) NOTIFICATIONS(Manifest.permission.POST_NOTIFICATIONS),
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU) MEDIA_AUDIO(READ_MEDIA_AUDIO),
+    @SuppressLint("InlinedApi") NOTIFICATIONS(Manifest.permission.POST_NOTIFICATIONS),
+    @SuppressLint("InlinedApi") MEDIA_AUDIO(READ_MEDIA_AUDIO),
     EXTERNAL_STORAGE(READ_EXTERNAL_STORAGE)
 }
 
@@ -53,4 +58,31 @@ class PermissionManager{
 
         }
     }
+}
+
+@Composable
+fun NotificationsAlertDialog(title: String, description: String, onCancel: () -> Unit, onOk: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = {
+            Text(text = "$title Required")
+        },
+        text = {
+            Text(text = description)
+        },
+        dismissButton = {
+            Button(
+                onClick = onCancel
+            ) {
+                Text(text = "Cancel")
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onOk
+            ) {
+                Text(text = "Allow")
+            }
+        }
+    )
 }

@@ -11,6 +11,7 @@ enum class TimingState{
     RUNNING,
     OFF,
     PAUSED,
+    RINGING
 }
 
 

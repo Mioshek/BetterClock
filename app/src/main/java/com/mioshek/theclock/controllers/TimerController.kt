@@ -1,5 +1,6 @@
 package com.mioshek.theclock.controllers
 
+import android.Manifest
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
@@ -15,7 +16,9 @@ import com.mioshek.theclock.data.TimeFormatter.Companion.getFullClockTime
 import com.mioshek.theclock.data.TimingState
 import com.mioshek.theclock.db.models.Timer
 import com.mioshek.theclock.db.models.TimerRepository
+import com.mioshek.theclock.extensions.permissions.PermissionManager
 import com.mioshek.theclock.services.RingtoneService
+import com.mioshek.theclock.services.ServiceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -115,10 +118,15 @@ class TimerListViewModel(
                 }
             }
             if(timer.timerState == TimingState.RUNNING){
+                updateRunningTimer(uiIndex, timer.copy(timerState = TimingState.RINGING, remainingProgress = 0f))
+                timer = _timers[uiIndex]
                 if (activity != null) startRingtoneService(activity)
-                while (timer.timerState != TimingState.OFF){
-                    timer = _timers[uiIndex]
+                while (timer.timerState == TimingState.RINGING){
                     delay(250)
+                    if (!ServiceManager.isServiceRunning(application.applicationContext, RingtoneService::class.java)){
+                        _timers[uiIndex] = timer.copy(timerState = TimingState.OFF)
+                    }
+                    timer = _timers[uiIndex]
                 }
                 stopRingtoneService()
                 updateRunningTimer(index = uiIndex, TimerUiState(id = timer.id, initialTime = timer.initialTime))

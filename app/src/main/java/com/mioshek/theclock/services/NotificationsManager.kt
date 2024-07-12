@@ -1,6 +1,5 @@
 package com.mioshek.theclock.services
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
@@ -17,7 +16,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.mioshek.theclock.MainActivity
 import com.mioshek.theclock.R
 import com.mioshek.theclock.data.Storage
 import com.mioshek.theclock.extensions.permissions.PermissionManager.Companion.checkPermission
@@ -42,16 +40,6 @@ class NotificationsManager(
         title: String,
         content: String,
     ) {
-        val intent = Intent(application, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            application,
-            0,
-            intent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
         val stopIntent = Intent(application.applicationContext, ClockReceiver::class.java)
         val stopPendingIntent = PendingIntent.getBroadcast(
             application.applicationContext,
@@ -70,12 +58,11 @@ class NotificationsManager(
             )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .addAction(R.drawable.stop, "Dismiss", stopPendingIntent)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
+            .setContentIntent(null)
 
         with(NotificationManagerCompat.from(application)) {
             if (checkPermission(application.applicationContext, RuntimePermissions.NOTIFICATIONS.permission)) {
-                requestNotificationPermission()
+                requestNotificationPermission(arrayOf(RuntimePermissions.NOTIFICATIONS.permission))
                 return
             }
             checkNotificationSettings()
@@ -104,11 +91,11 @@ class NotificationsManager(
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private fun requestNotificationPermission() {
+    private fun requestNotificationPermission(permissions: Array<String>) {
         val activity = Storage.take<Activity>("Activity")
         ActivityCompat.requestPermissions(
             activity,
-            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            permissions,
             1
         )
     }

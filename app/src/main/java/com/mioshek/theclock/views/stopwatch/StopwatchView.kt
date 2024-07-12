@@ -206,6 +206,11 @@ fun StopwatchButtons(stopwatchViewModel: StopwatchViewModel, modifier: Modifier 
                     )
                 }
             }
+            else -> {
+                Box(contentAlignment = Alignment.Center){
+                    Text(text = "Something Went Wrong !")
+                }
+            }
         }
     }
 }
