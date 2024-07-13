@@ -2,12 +2,16 @@ package com.mioshek.theclock.controllers
 
 import android.app.Activity
 import android.app.Application
+import android.app.NotificationManager
 import android.content.Intent
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mioshek.theclock.R
+import com.mioshek.theclock.assets.StringFormatters
 import com.mioshek.theclock.data.ClockTime
 import com.mioshek.theclock.data.Storage
 import com.mioshek.theclock.data.TimeFormatter.Companion.getClockTimeWithoutMillis
@@ -15,6 +19,7 @@ import com.mioshek.theclock.data.TimeFormatter.Companion.getFullClockTime
 import com.mioshek.theclock.data.TimingState
 import com.mioshek.theclock.db.models.Timer
 import com.mioshek.theclock.db.models.TimerRepository
+import com.mioshek.theclock.services.NotificationsManager
 import com.mioshek.theclock.services.RingtoneService
 import com.mioshek.theclock.services.ServiceManager
 import kotlinx.coroutines.CoroutineScope
@@ -99,6 +104,23 @@ class TimerListViewModel(
         val cycleTimeMs = 17L
 
         CoroutineScope(Dispatchers.Default).launch {
+            val notificationManager = NotificationsManager(
+                activity?.application!!,
+                CHANNEL_CODE = "Timer",
+                importance = NotificationManager.IMPORTANCE_DEFAULT,
+                name = "TimerNotifications",
+                descriptionText = ""
+            )
+
+            notificationManager.showLockScreenNotification(
+                NOTIFICATION_ID = uiIndex,
+                smallIcon = R.drawable.hourglass,
+                title = "Timer",
+                content = "",
+                actions = arrayOf(),
+                priority = NotificationCompat.PRIORITY_DEFAULT
+            )
+
             while (System.currentTimeMillis() < future - cycleTimeMs && timer.timerState == TimingState.RUNNING) {
                 timer = _timers[uiIndex]
                 val currentTime = System.currentTimeMillis()
@@ -106,20 +128,26 @@ class TimerListViewModel(
                 time = getFullClockTime(remainingTime)
                 progressBarStatus = remainingTime.toFloat() / timerTime.toFloat()
                 updateRunningTimer(uiIndex, timer.copy(updatableTime = time, remainingProgress = progressBarStatus))
+
+                notificationManager.updateNotification(uiIndex, "Time left: ${StringFormatters.getStringTime(time, 0,3)}")
+
                 delay(cycleTimeMs) // 60FPS
+
                 while (timer.timerState == TimingState.PAUSED){
                     timer = _timers[uiIndex]
                     future = timeToMillis(timer.updatableTime) + System.currentTimeMillis()
                     delay(100)
                 }
             }
-            if(timer.timerState == TimingState.RUNNING){
+
+            if (timer.timerState == TimingState.RUNNING) {
                 updateRunningTimer(uiIndex, timer.copy(timerState = TimingState.RINGING, remainingProgress = 0f))
                 timer = _timers[uiIndex]
-                if (activity != null) startRingtoneService(activity)
-                while (timer.timerState == TimingState.RINGING){
+                startRingtoneService(activity)
+
+                while (timer.timerState == TimingState.RINGING) {
                     delay(250)
-                    if (!ServiceManager.isServiceRunning(application.applicationContext, RingtoneService::class.java)){
+                    if (!ServiceManager.isServiceRunning(application.applicationContext, RingtoneService::class.java)) {
                         _timers[uiIndex] = timer.copy(timerState = TimingState.OFF)
                     }
                     timer = _timers[uiIndex]
@@ -127,7 +155,8 @@ class TimerListViewModel(
                 stopRingtoneService()
                 updateRunningTimer(index = uiIndex, TimerUiState(id = timer.id, initialTime = timer.initialTime))
             }
-            if (timer.timerState == TimingState.OFF){
+
+            if (timer.timerState == TimingState.OFF) {
                 updateRunningTimer(index = uiIndex, TimerUiState(id = timer.id, initialTime = timer.initialTime))
             }
         }

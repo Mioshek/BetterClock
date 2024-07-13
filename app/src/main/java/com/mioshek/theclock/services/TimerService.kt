@@ -46,7 +46,7 @@ class TimerService : Service() {
     private fun acquireWakeLock() {
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "TimerApp::WakeLock")
-        wakeLock.acquire()
+        wakeLock.acquire(10*60*1000L /*10 minutes*/)
     }
 
     private fun createNotificationChannel() {

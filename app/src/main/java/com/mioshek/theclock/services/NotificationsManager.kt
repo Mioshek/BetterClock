@@ -30,7 +30,7 @@ class NotificationsManager(
     descriptionText: String,
 ) {
     lateinit var builder: NotificationCompat.Builder
-
+    lateinit var activity: Activity
 
     init {
         createNotificationChannel(importance, name, descriptionText, CHANNEL_CODE)
@@ -63,11 +63,8 @@ class NotificationsManager(
         with(NotificationManagerCompat.from(application)) {
             // Check if notification permission is granted
             if (!checkPermission(application.applicationContext, RuntimePermissions.NOTIFICATIONS.permission)) {
-                // Request notification permission
-                requestNotificationPermission(arrayOf(RuntimePermissions.NOTIFICATIONS.permission))
                 return
             }
-
             // Check notification settings (e.g., channel existence)
             checkNotificationSettings()
 
@@ -94,6 +91,8 @@ class NotificationsManager(
             .setContentTitle(title)
             .setContentText(content)
             .setPriority(priority)
+            .setOnlyAlertOnce(true)
+//            .setOngoing(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(false)
             .setDefaults(Notification.DEFAULT_VIBRATE)
@@ -115,7 +114,6 @@ class NotificationsManager(
             // Check if notification permission is granted
             if (!checkPermission(application.applicationContext, RuntimePermissions.NOTIFICATIONS.permission)) {
                 // Request notification permission
-                requestNotificationPermission(arrayOf(RuntimePermissions.NOTIFICATIONS.permission))
                 return
             }
 
@@ -124,6 +122,16 @@ class NotificationsManager(
 
             // Notify with the built notification
             notify(NOTIFICATION_ID, notification)
+        }
+    }
+
+    @SuppressLint("NewApi")
+    fun updateNotification(NOTIFICATION_ID: Int, content: String) {
+        builder.setContentText(content)
+        with(NotificationManagerCompat.from(application)) {
+            if (!checkPermission(application.applicationContext, RuntimePermissions.NOTIFICATIONS.permission)) {
+                notify(NOTIFICATION_ID, builder.build())
+            }
         }
     }
 

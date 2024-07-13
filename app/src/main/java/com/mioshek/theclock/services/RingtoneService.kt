@@ -7,9 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.Ringtone
 import android.media.RingtoneManager
-import android.os.Handler
-import android.os.IBinder
-import android.os.PowerManager
+import android.os.*
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.mioshek.theclock.R
@@ -21,6 +19,7 @@ class RingtoneService : Service() {
     private lateinit var notificationManager: NotificationsManager
     private lateinit var stopHandler: Handler
     private lateinit var stopRunnable: Runnable
+    private lateinit var wakeLock: PowerManager.WakeLock
 
     override fun onCreate() {
         super.onCreate()
@@ -34,21 +33,26 @@ class RingtoneService : Service() {
             descriptionText = ""
         )
 
-        stopHandler = Handler()
+        stopHandler = Handler(Looper.getMainLooper())
         stopRunnable = Runnable {
             stopRingtone()
         }
+
+        // Acquire wake lock when service is created
+        wakeUpScreen(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        wakeUpScreen(this)
+        // Show notification and play ringtone
+        showNotification()
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        // Remove any pending callbacks to prevent the Runnable from executing after service is destroyed
+        // Release any resources
         stopHandler.removeCallbacks(stopRunnable)
+        releaseWakeLock()
 
         if (ringtone.isPlaying) {
             ringtone.stop()
@@ -61,21 +65,21 @@ class RingtoneService : Service() {
 
     private fun wakeUpScreen(context: Context) {
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-        val wakeLock = powerManager.newWakeLock(
+        wakeLock = powerManager.newWakeLock(
             PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
-            "App:WakeLock"
+            "Ringtone:WakeLock"
         )
 
-        wakeLock.acquire(3000) // Acquire wakelock for 3 seconds
-
-        // Show your notification here
-        showNotification()
-
-        // Release the wakelock
-        wakeLock.release()
+        wakeLock.acquire(7000) // Acquire wakelock for 7 seconds
     }
 
-    private fun showNotification(){
+    private fun releaseWakeLock() {
+        if (wakeLock.isHeld) {
+            wakeLock.release()
+        }
+    }
+
+    private fun showNotification() {
         notificationManager.showLockScreenNotification(
             R.drawable.hourglass,
             "Timer",
@@ -90,7 +94,10 @@ class RingtoneService : Service() {
                 application.applicationContext,
                 RuntimePermissions.NOTIFICATIONS.permission
             ) == PackageManager.PERMISSION_GRANTED
-        ) ringtone.play()
+        ) {
+            ringtone.play()
+        }
+
         // Schedule the stop operation after 20 seconds (20000 milliseconds) for testing
         stopHandler.postDelayed(stopRunnable, 20000)
     }
