@@ -108,7 +108,7 @@ class TimeFormatter{
                 val days = minimumMinutes / (24 * 60)
                 val hours = (minimumMinutes % (24 * 60)) / 60
                 val minutes = minimumMinutes % 60
-                return if (days > 0) "$days days $hours hours and $minutes minutes"
+                return if (days in 1..6) "$days days $hours hours and $minutes minutes"
                 else if (hours > 0) "$hours hours and $minutes minutes"
                 else "$minutes minutes"
             } else {

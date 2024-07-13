@@ -3,6 +3,7 @@ package com.mioshek.theclock.services
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -20,7 +21,6 @@ import com.mioshek.theclock.R
 import com.mioshek.theclock.data.Storage
 import com.mioshek.theclock.extensions.permissions.PermissionManager.Companion.checkPermission
 import com.mioshek.theclock.extensions.permissions.RuntimePermissions
-import com.mioshek.theclock.receivers.ClockReceiver
 
 class NotificationsManager(
     private val application: Application,
@@ -31,23 +31,22 @@ class NotificationsManager(
 ) {
     lateinit var builder: NotificationCompat.Builder
 
-    init {createNotificationChannel(importance, name, descriptionText, CHANNEL_CODE) }
+
+    init {
+        createNotificationChannel(importance, name, descriptionText, CHANNEL_CODE)
+    }
 
     @SuppressLint("MissingPermission", "NewApi")
-    fun createNotification(
+    fun showPopupNotification(
         NOTIFICATION_ID: Int,
         smallIcon: Int,
         title: String,
         content: String,
+        pendingIntent: PendingIntent,
+        priority: Int
     ) {
-        val stopIntent = Intent(application.applicationContext, ClockReceiver::class.java)
-        val stopPendingIntent = PendingIntent.getBroadcast(
-            application.applicationContext,
-            0,
-            stopIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
 
+        // Use the class-level builder property
         builder = NotificationCompat.Builder(application, CHANNEL_CODE)
             .setSmallIcon(smallIcon)
             .setContentTitle(title)
@@ -56,17 +55,75 @@ class NotificationsManager(
                 NotificationCompat.BigTextStyle()
                     .bigText(content)
             )
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .addAction(R.drawable.stop, "Dismiss", stopPendingIntent)
-            .setContentIntent(null)
+            .setPriority(priority)
+            .addAction(R.drawable.stop, "Dismiss", pendingIntent)
+        // Set a dummy content intent or remove this line if no action is needed on click
+        // .setContentIntent(contentIntent)
 
         with(NotificationManagerCompat.from(application)) {
-            if (checkPermission(application.applicationContext, RuntimePermissions.NOTIFICATIONS.permission)) {
+            // Check if notification permission is granted
+            if (!checkPermission(application.applicationContext, RuntimePermissions.NOTIFICATIONS.permission)) {
+                // Request notification permission
                 requestNotificationPermission(arrayOf(RuntimePermissions.NOTIFICATIONS.permission))
                 return
             }
+
+            // Check notification settings (e.g., channel existence)
             checkNotificationSettings()
+
+            // Notify with the built notification
             notify(NOTIFICATION_ID, builder.build())
+        }
+    }
+
+    @SuppressLint("NewApi")
+    fun showLockScreenNotification(
+        smallIcon: Int,
+        title: String,
+        content: String,
+        priority: Int,
+        NOTIFICATION_ID: Int,
+        actions: Array<Triple<Int, String, Class<*>>>
+    ){
+        val intents = actions.map {
+            Intent(application.applicationContext, it.third)
+        }.toTypedArray()
+
+        builder = NotificationCompat.Builder(application, CHANNEL_CODE)
+            .setSmallIcon(smallIcon)
+            .setContentTitle(title)
+            .setContentText(content)
+            .setPriority(priority)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setAutoCancel(false)
+            .setDefaults(Notification.DEFAULT_VIBRATE)
+
+
+        intents.forEachIndexed{ index, value ->
+            val pendingIntent = PendingIntent.getBroadcast(
+                application.applicationContext,
+                0,
+                value,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            builder.addAction(actions[index].first, actions[index].second, pendingIntent)
+        }
+
+        val notification = builder.build()
+
+        with(NotificationManagerCompat.from(application)) {
+            // Check if notification permission is granted
+            if (!checkPermission(application.applicationContext, RuntimePermissions.NOTIFICATIONS.permission)) {
+                // Request notification permission
+                requestNotificationPermission(arrayOf(RuntimePermissions.NOTIFICATIONS.permission))
+                return
+            }
+
+            // Check notification settings (e.g., channel existence)
+            checkNotificationSettings()
+
+            // Notify with the built notification
+            notify(NOTIFICATION_ID, notification)
         }
     }
 

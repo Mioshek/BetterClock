@@ -91,8 +91,6 @@ class TimerListViewModel(
     }
 
     fun runTimer(uiIndex: Int, activity: Activity?) {
-        // assuming the initial timer state is set from the UI
-        // we calculate the future - the millis timer will finish
         var timer = _timers[uiIndex]
         var progressBarStatus: Float
         val timerTime = timeToMillis(timer.initialTime)
