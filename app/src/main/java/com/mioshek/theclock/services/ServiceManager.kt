@@ -15,5 +15,15 @@ class ServiceManager {
             return false
         }
 
+         fun getRunningServicesCount(context: Context): Int {
+            val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            val runningServices = activityManager.getRunningServices(Int.MAX_VALUE)
+
+            val packageName = context.packageName
+            val myAppServices = runningServices.filter { it.service.packageName == packageName }
+
+            return myAppServices.size
+        }
+
     }
 }

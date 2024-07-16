@@ -11,21 +11,21 @@ import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.mioshek.theclock.R
+import com.mioshek.theclock.data.Storage
 
 class TimerService : Service() {
     private lateinit var wakeLock: PowerManager.WakeLock
-
-
-    companion object {
-        const val CHANNEL_ID = "TimerServiceChannel"
-        const val NOTIFICATION_ID = 1
-    }
+//    companion object {
+//        const val CHANNEL_ID = "TimerServiceChannel"
+//        const val NOTIFICATION_ID = 1
+//    }
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
-        val notification = createNotification()
-        startForeground(NOTIFICATION_ID, notification)
+//        createNotificationChannel()
+//        val notification = createNotification()
+//        startForeground(NOTIFICATION_ID, notification)
+        this.startService(Intent(this, RingtoneService::class.java))
         acquireWakeLock()
     }
 
@@ -49,22 +49,22 @@ class TimerService : Service() {
         wakeLock.acquire(10*60*1000L /*10 minutes*/)
     }
 
-    private fun createNotificationChannel() {
-        val serviceChannel = NotificationChannel(
-            CHANNEL_ID,
-            "Timer Service Channel",
-            NotificationManager.IMPORTANCE_DEFAULT
-        )
-        val manager = getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(serviceChannel)
-    }
+//    private fun createNotificationChannel() {
+//        val serviceChannel = NotificationChannel(
+//            CHANNEL_ID,
+//            "Timer Service Channel",
+//            NotificationManager.IMPORTANCE_DEFAULT
+//        )
+//        val manager = getSystemService(NotificationManager::class.java)
+//        manager.createNotificationChannel(serviceChannel)
+//    }
 
-    private fun createNotification(): Notification {
-        Log.d("TimerIsRunning","")
-        return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Timer Running")
-            .setContentText("Your timer is active.")
-            .setSmallIcon(R.drawable.hourglass)
-            .build()
-    }
+//    private fun createNotification(): Notification {
+//        Log.d("TimerIsRunning","")
+//        return NotificationCompat.Builder(this, CHANNEL_ID)
+//            .setContentTitle("Timer Running")
+//            .setContentText("Your timer is active.")
+//            .setSmallIcon(R.drawable.hourglass)
+//            .build()
+//    }
 }

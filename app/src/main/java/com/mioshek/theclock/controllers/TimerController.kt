@@ -21,6 +21,7 @@ import com.mioshek.theclock.db.models.Timer
 import com.mioshek.theclock.db.models.TimerRepository
 import com.mioshek.theclock.services.NotificationsManager
 import com.mioshek.theclock.services.RingtoneService
+import com.mioshek.theclock.services.RingtoneType
 import com.mioshek.theclock.services.ServiceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -102,23 +103,23 @@ class TimerListViewModel(
         var future = timeToMillis(timer.updatableTime) + System.currentTimeMillis()
         var time: ClockTime
         val cycleTimeMs = 17L
-
         CoroutineScope(Dispatchers.Default).launch {
+            val notificationId = 100 + uiIndex
             val notificationManager = NotificationsManager(
                 activity?.application!!,
                 CHANNEL_CODE = "Timer",
-                importance = NotificationManager.IMPORTANCE_DEFAULT,
+                importance = NotificationManager.IMPORTANCE_HIGH,
                 name = "TimerNotifications",
                 descriptionText = ""
             )
 
             notificationManager.showLockScreenNotification(
-                NOTIFICATION_ID = uiIndex,
+                NOTIFICATION_ID = notificationId,
                 smallIcon = R.drawable.hourglass,
                 title = "Timer",
                 content = "",
                 actions = arrayOf(),
-                priority = NotificationCompat.PRIORITY_DEFAULT
+                priority = NotificationCompat.PRIORITY_HIGH,
             )
 
             while (System.currentTimeMillis() < future - cycleTimeMs && timer.timerState == TimingState.RUNNING) {
@@ -129,7 +130,7 @@ class TimerListViewModel(
                 progressBarStatus = remainingTime.toFloat() / timerTime.toFloat()
                 updateRunningTimer(uiIndex, timer.copy(updatableTime = time, remainingProgress = progressBarStatus))
 
-                notificationManager.updateNotification(uiIndex, "Time left: ${StringFormatters.getStringTime(time, 0,3)}")
+                notificationManager.updateNotification(notificationId, "Time left: ${StringFormatters.getStringTime(time, 0,3)}")
 
                 delay(cycleTimeMs) // 60FPS
 
@@ -143,6 +144,7 @@ class TimerListViewModel(
             if (timer.timerState == TimingState.RUNNING) {
                 updateRunningTimer(uiIndex, timer.copy(timerState = TimingState.RINGING, remainingProgress = 0f))
                 timer = _timers[uiIndex]
+                notificationManager.discardNotification(notificationId)
                 startRingtoneService(activity)
 
                 while (timer.timerState == TimingState.RINGING) {
@@ -165,6 +167,7 @@ class TimerListViewModel(
     private fun startRingtoneService(activity: Activity){
         val intent = Intent(application.applicationContext, RingtoneService::class.java)
         Storage.put("Activity", activity)
+        Storage.put("RingtoneType", RingtoneType.TIMER)
         ContextCompat.startForegroundService(application.applicationContext, intent)
     }
 

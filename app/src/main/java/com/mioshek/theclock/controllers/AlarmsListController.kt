@@ -50,7 +50,8 @@ class AlarmsListViewModel(
 
     private fun getAllAlarms() {
         viewModelScope.launch {
-            val importedAlarms = alarmsRepository.getAllByIdAsc().first()
+            val importedAlarms = alarmsRepository.getAllByTimeAsc().first()
+            _alarms.clear()
             for (alarm in importedAlarms) {
                 _alarms.add(
                     AlarmUiState(
@@ -74,12 +75,15 @@ class AlarmsListViewModel(
         _alarms[index] = newAlarm
         saveDb(newAlarm)
         if (newAlarm.enabled){
-            alarmService.setAlarm(newAlarm.initialTime, newAlarm.daysOfWeek)
+            alarmService.setAlarm(application.applicationContext,newAlarm.initialTime, newAlarm.daysOfWeek)
             Toast.makeText(
                 application.applicationContext,
-                "Clock set to ${newAlarm.initialTime / 60}:${newAlarm.initialTime % 60}",
+                "Clock set in ${TimeFormatter.calculateTimeLeft(newAlarm.initialTime, newAlarm.daysOfWeek)}",
                 Toast.LENGTH_LONG
             ).show()
+        }
+        else{
+            alarmService.cancelAlarm(application.applicationContext)
         }
     }
 
@@ -98,9 +102,9 @@ class AlarmsListViewModel(
         }
     }
 
-    fun upsert(index: Int?, alarm: AlarmUiState) {
-        if (index != null) _alarms[index] = alarm else _alarms.add(alarm)
+    fun upsert(alarm: AlarmUiState) {
         saveDb(alarm)
+        getAllAlarms()
     }
 
     fun deleteAlarm(index: Int) {
@@ -110,6 +114,8 @@ class AlarmsListViewModel(
             alarmsRepository.delete(deleted.id!!)
         }
     }
+
+    fun changeAlarmSelection(index: Int, alarm: AlarmUiState) {_alarms[index] = alarm}
 
     fun changeSelectionState(){
         inSelectionMode.value = !inSelectionMode.value

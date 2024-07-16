@@ -51,16 +51,15 @@
             android:name=".services.RingtoneService"
             android:foregroundServiceType="mediaPlayback" />
 
-        <!-- Receiver -->
-        <receiver android:name=".receivers.ClockReceiver" />
+        <!-- Receivers -->
+        <receiver android:name=".receivers.TimerReceiver"/>
 
-        <receiver android:name=".receivers.AlarmReceiver"
-            android:enabled="false"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"></action>
-            </intent-filter>
-        </receiver>
+        <receiver android:name=".receivers.AlarmReceiver"/>
+
+        <receiver android:name=".receivers.SnoozeReceiver"/>
+
+        <receiver android:name=".receivers.AlarmStopReceiver"/>
+
     </application>
 
 </manifest>

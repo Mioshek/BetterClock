@@ -1,22 +1,27 @@
 package com.mioshek.theclock.services
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.app.Notification
+import android.app.Notification.Action
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import com.mioshek.theclock.R
 import com.mioshek.theclock.data.Storage
 import com.mioshek.theclock.extensions.permissions.PermissionManager.Companion.checkPermission
@@ -30,7 +35,6 @@ class NotificationsManager(
     descriptionText: String,
 ) {
     lateinit var builder: NotificationCompat.Builder
-    lateinit var activity: Activity
 
     init {
         createNotificationChannel(importance, name, descriptionText, CHANNEL_CODE)
@@ -73,7 +77,6 @@ class NotificationsManager(
         }
     }
 
-    @SuppressLint("NewApi")
     fun showLockScreenNotification(
         smallIcon: Int,
         title: String,
@@ -81,46 +84,39 @@ class NotificationsManager(
         priority: Int,
         NOTIFICATION_ID: Int,
         actions: Array<Triple<Int, String, Class<*>>>
-    ){
-        val intents = actions.map {
-            Intent(application.applicationContext, it.third)
-        }.toTypedArray()
-
+    ) {
         builder = NotificationCompat.Builder(application, CHANNEL_CODE)
             .setSmallIcon(smallIcon)
             .setContentTitle(title)
             .setContentText(content)
             .setPriority(priority)
             .setOnlyAlertOnce(true)
-//            .setOngoing(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(false)
             .setDefaults(Notification.DEFAULT_VIBRATE)
 
-
-        intents.forEachIndexed{ index, value ->
+        actions.forEachIndexed { index, action ->
+            val intent = Intent(application, action.third)
             val pendingIntent = PendingIntent.getBroadcast(
-                application.applicationContext,
-                0,
-                value,
+                application,
+                index + 100,  // Ensure unique request code for each action
+                intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            builder.addAction(actions[index].first, actions[index].second, pendingIntent)
+            builder.addAction(action.first, action.second, pendingIntent)
         }
-
         val notification = builder.build()
 
         with(NotificationManagerCompat.from(application)) {
-            // Check if notification permission is granted
-            if (!checkPermission(application.applicationContext, RuntimePermissions.NOTIFICATIONS.permission)) {
-                // Request notification permission
+
+            checkNotificationSettings()
+            if (ActivityCompat.checkSelfPermission(
+                    application.applicationContext,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 return
             }
-
-            // Check notification settings (e.g., channel existence)
-            checkNotificationSettings()
-
-            // Notify with the built notification
             notify(NOTIFICATION_ID, notification)
         }
     }
@@ -146,6 +142,7 @@ class NotificationsManager(
 
     private fun checkNotificationSettings() {
         if (!NotificationManagerCompat.from(application.applicationContext).areNotificationsEnabled()) {
+
             Toast.makeText(application.applicationContext, "Please enable notifications in settings", Toast.LENGTH_LONG).show()
             val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -156,12 +153,16 @@ class NotificationsManager(
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private fun requestNotificationPermission(permissions: Array<String>) {
-        val activity = Storage.take<Activity>("Activity")
+    private fun requestNotificationPermission(permissions: Array<String>, activity: Activity) {
         ActivityCompat.requestPermissions(
             activity,
             permissions,
             1
         )
+    }
+
+    fun discardNotification(notificationId: Int) {
+        val notificationManager = application.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(notificationId)
     }
 }

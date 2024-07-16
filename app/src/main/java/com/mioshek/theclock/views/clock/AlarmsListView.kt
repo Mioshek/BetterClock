@@ -76,6 +76,7 @@ fun AlarmsListView(
         alarms.forEachIndexed{ index, alarm ->
             if (alarm.isSelected) alarmsListViewModel.deleteAlarm(index)
         }
+        alarmsListViewModel.changeSelectionState()
     }
 
     Box(
@@ -88,7 +89,7 @@ fun AlarmsListView(
         ) {
             if (alarmsListViewModel.inSelectionMode.value){
                 item {
-                    DeleteBarView({deletionConfirmed = true})
+                    DeleteBarView({ deletionConfirmed = true })
                 }
             }
 
@@ -141,131 +142,136 @@ fun AlarmCard(
     alarmsViewModel: AlarmsListViewModel,
     modifier: Modifier = Modifier
 ){
-    var extended by remember{mutableStateOf(false)}
-    var timeLeftString by remember { mutableStateOf("")}
-    LaunchedEffect(alarm) {
-        while (true) {
-            timeLeftString = TimeFormatter.calculateTimeLeft(alarm.initialTime, alarm.daysOfWeek)
-            delay(4000L)
-        }
-    }
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground.copy(0.1f)),
-        modifier = modifier
-            .padding(10.dp)
-            .combinedClickable(
-                onClick = {
-                    if (alarmsViewModel.inSelectionMode.value) {
-                        alarmsViewModel.upsert(index, alarm.copy(isSelected = !alarm.isSelected))
-                    } else extended = !extended
-                },
-                onLongClick = {
-                    alarmsViewModel.changeSelectionState()
-                }
-            )
-    ){
-        Box(modifier = modifier.fillMaxSize()){
-            Box(modifier = modifier.padding(5.dp)){
-                if (alarmsViewModel.inSelectionMode.value && alarm.isSelected){
-                    Icon(painter = painterResource(id = R.drawable.checkbox_selected), contentDescription = "Selected")
-                }
-                else if (alarmsViewModel.inSelectionMode.value){
-                    Icon(painter = painterResource(id = R.drawable.checkbox_unselected), contentDescription = "Unselected")
-                }
+    if(alarm.visible){
+        var extended by remember{mutableStateOf(false)}
+        var timeLeftString by remember { mutableStateOf("")}
+        LaunchedEffect(alarm) {
+            while (true) {
+                timeLeftString = TimeFormatter.calculateTimeLeft(alarm.initialTime, alarm.daysOfWeek)
+                delay(4000L)
             }
+        }
 
-            Column(
-                modifier = modifier.animateContentSize(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessLow
-                    )
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground.copy(0.1f)),
+            modifier = modifier
+                .padding(10.dp)
+                .combinedClickable(
+                    enabled = true,
+                    onClick = {
+                        if (alarmsViewModel.inSelectionMode.value) {
+                            alarmsViewModel.changeAlarmSelection(index, alarm.copy(isSelected = !alarm.isSelected))
+                        } else {
+                            extended = !extended
+                        }
+                    },
+                    onLongClick = {
+                        alarmsViewModel.changeSelectionState()
+                    }
                 )
-            ) {
-                Row (
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = modifier
-                        .fillMaxWidth()
-                        .padding(start = 10.dp, end = 10.dp)
-                ){
-                    Box(
-                        contentAlignment = Alignment.CenterStart,
+        ) {
+            Box(modifier = modifier.fillMaxSize()){
+                Box(modifier = modifier.padding(5.dp)){
+                    if (alarmsViewModel.inSelectionMode.value && alarm.isSelected){
+                        Icon(painter = painterResource(id = R.drawable.checkbox_selected), contentDescription = "Selected")
+                    }
+                    else if (alarmsViewModel.inSelectionMode.value){
+                        Icon(painter = painterResource(id = R.drawable.checkbox_unselected), contentDescription = "Unselected")
+                    }
+                }
+
+                Column(
+                    modifier = modifier.animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    )
+                ) {
+                    Row (
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .padding(start = 10.dp, end = 10.dp)
                     ){
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            val text = TimeFormatter.format(alarm.initialTime, true)
-                            Text(
-                                text = text[0],
-                                fontSize = 50.sp,
-                                fontFamily = displayFontFamily,
-                                fontWeight = FontWeight.W600,
-                            )
-                            Text(
-                                text = text[1],
-                                fontSize = 50.sp,
-                                fontFamily = displayFontFamily,
-                                fontWeight = FontWeight.W600,
-                                modifier = modifier.padding(end = 5.dp)
-                            )
-                            if (text.size == 3){
+                        Box(
+                            contentAlignment = Alignment.CenterStart,
+                        ){
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                val text = TimeFormatter.format(alarm.initialTime, true)
                                 Text(
-                                    text = text[2],
-                                    fontSize = 25.sp,
+                                    text = text[0],
+                                    fontSize = 50.sp,
                                     fontFamily = displayFontFamily,
+                                    fontWeight = FontWeight.W600,
                                 )
+                                Text(
+                                    text = text[1],
+                                    fontSize = 50.sp,
+                                    fontFamily = displayFontFamily,
+                                    fontWeight = FontWeight.W600,
+                                    modifier = modifier.padding(end = 5.dp)
+                                )
+                                if (text.size == 3){
+                                    Text(
+                                        text = text[2],
+                                        fontSize = 25.sp,
+                                        fontFamily = displayFontFamily,
+                                    )
+                                }
                             }
+                        }
+
+                        Box(
+                        ) {
+                            Switch(
+                                checked = alarm.enabled,
+                                onCheckedChange = {
+                                    alarmsViewModel.toggleAlarm(index)
+                                },
+                                modifier = modifier
+                            )
                         }
                     }
 
                     Box(
-                    ) {
-                        Switch(
-                            checked = alarm.enabled,
-                            onCheckedChange = {
-                                alarmsViewModel.toggleAlarm(index)
-                            },
-                            modifier = modifier
-                        )
-                    }
-                }
-
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = modifier.fillMaxWidth()
-                ){
-                    Box(modifier = modifier.fillMaxWidth(0.8f)){
-                        SelectedDaysView(
-                            alarm.daysOfWeek,
-                            onClick={
-                                if (extended){
-                                    val startingSelectedDays = alarm.daysOfWeek.copyOf()
-                                    startingSelectedDays[it] = !startingSelectedDays[it]
-                                    alarmsViewModel.upsert(index, alarm.copy(daysOfWeek = startingSelectedDays))
+                        contentAlignment = Alignment.Center,
+                        modifier = modifier.fillMaxWidth()
+                    ){
+                        Box(modifier = modifier.fillMaxWidth(0.8f)){
+                            SelectedDaysView(
+                                alarm.daysOfWeek,
+                                onClick={
+                                    if (extended){
+                                        val startingSelectedDays = alarm.daysOfWeek.copyOf()
+                                        startingSelectedDays[it] = !startingSelectedDays[it]
+                                        alarmsViewModel.upsert(alarm.copy(daysOfWeek = startingSelectedDays))
+                                    }
                                 }
-                            }
+                            )
+                        }
+                    }
+
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = modifier
+                            .padding(bottom = 5.dp, top = 5.dp)
+                            .fillMaxWidth()
+                    ){
+                        Text(
+                            text = timeLeftString,
+                            fontSize = 12.sp,
+                            fontFamily = bodyFontFamily,
+                            fontWeight = FontWeight.Light
                         )
                     }
-                }
 
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = modifier
-                        .padding(bottom = 5.dp, top = 5.dp)
-                        .fillMaxWidth()
-                ){
-                    Text(
-                        text = timeLeftString,
-                        fontSize = 12.sp,
-                        fontFamily = bodyFontFamily,
-                        fontWeight = FontWeight.Light
-                    )
-                }
-
-                if (extended){
-                    // Settings
+                    if (extended){
+                        // Settings
+                    }
                 }
             }
         }
@@ -401,7 +407,6 @@ fun AlarmCreatorView(
                     modifier = modifier
                         .clickable {
                             alarmsViewModel.upsert(
-                                null,
                                 createdAlarmUiState.copy(
                                     initialTime = time,
                                     ringTime = time
